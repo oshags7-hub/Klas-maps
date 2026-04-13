@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>KLAS ARFF Reference</title>
+<style>
+:root {
+  --bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+  --arff:#ff6b35;--arff-bg:#2d1a0e;--blue:#388bfd;--blue-bg:#0d1f38;
+  --purple:#a371f7;--purple-bg:#1a0d38;--hdr:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;}
+#hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100;}
+#back-btn{background:none;border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:10px;font-size:20px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+#back-btn.visible{display:flex;}
+#back-btn:active{opacity:.6;}
+#hdr-info{flex:1;min-width:0;}
+#hdr-title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#hdr-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.hdr-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.b-arff{background:var(--arff-bg);color:var(--arff);border:1px solid var(--arff);}
+.b-term{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue);}
+.b-ac{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);}
+#nav-arrows{display:none;gap:6px;flex-shrink:0;}
+#nav-arrows.visible{display:flex;}
+.arr{background:#21262d;border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:10px;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.arr:active{opacity:.6;}
+.screen{position:fixed;top:var(--hdr);left:0;right:0;bottom:0;transform:translateX(100%);transition:transform .25s ease;background:var(--bg);}
+.screen.active{transform:translateX(0);}
+#home-screen{transform:translateX(0);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 40px;}
+.sec{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:20px 0 10px;padding:0 2px;}
+.sec:first-child{margin-top:4px;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 14px 16px;cursor:pointer;text-align:left;color:var(--text);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;min-height:100px;}
+.tile:active{opacity:.7;}
+.tile.arff{border-color:var(--arff);background:var(--arff-bg);}
+.tile.wide{grid-column:span 2;flex-direction:row;align-items:center;gap:16px;min-height:80px;padding:18px 20px;}
+.tile.wide .ti{flex:1;}
+.t-ico{font-size:28px;line-height:1;}
+.wide .t-ico{font-size:36px;}
+.t-name{font-size:14px;font-weight:700;line-height:1.3;}
+.wide .t-name{font-size:16px;}
+.t-sub{font-size:11px;color:var(--muted);}
+.t-arr{position:absolute;bottom:12px;right:12px;font-size:16px;color:var(--muted);opacity:.5;}
+.wide .t-arr{position:static;opacity:1;font-size:20px;}
+#map-screen,#ac-screen{touch-action:none;background:#0a0a0a;}
+#map-img,#ac-img{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none;-webkit-user-select:none;display:block;max-width:none;opacity:0;transition:opacity .2s;}
+#map-img.visible,#ac-img.visible{opacity:1;}
+.vspinner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0a0a0a;z-index:10;}
+.vspinner.hidden{display:none;}
+.sp{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--arff);border-radius:50%;animation:spin .8s linear infinite;}
+.vspinner p{font-size:14px;color:var(--muted);}
+@keyframes spin{to{transform:rotate(360deg);}}
+#ac-list-screen{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 40px;}
+.ac-tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;color:var(--text);}
+.ac-tile:active{opacity:.7;}
+.ac-ico{font-size:32px;flex-shrink:0;}
+.ac-info{flex:1;}
+.ac-name{font-size:16px;font-weight:700;}
+.ac-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.ac-pages{font-size:11px;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple);border-radius:12px;padding:2px 8px;flex-shrink:0;}
+#zoom-ctrl{position:fixed;bottom:28px;right:16px;display:none;flex-direction:column;gap:8px;z-index:160;}
+#zoom-ctrl.visible{display:flex;}
+.zbtn{width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid var(--border);color:var(--text);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
+.zbtn:active{opacity:.6;}
+#fit-btn{font-size:13px;font-weight:800;}
+.ind-pill{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.93);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--muted);backdrop-filter:blur(8px);z-index:160;pointer-events:none;white-space:nowrap;display:none;}
+.ind-pill.visible{display:block;}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <button id="back-btn" onclick="goBack()">&#8592;</button>
+  <div id="hdr-info">
+    <div id="hdr-title">KLAS ARFF Reference</div>
+    <div id="hdr-sub">Harry Reid International Airport</div>
+  </div>
+  <span id="hdr-badge" class="hdr-badge" style="display:none"></span>
+  <div id="nav-arrows">
+    <button class="arr" onclick="nav(-1)">&#8249;</button>
+    <button class="arr" onclick="nav(1)">&#8250;</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" class="screen active">
+  <div class="sec">🔥 ARFF / Airside Critical</div>
+  <div class="grid">
+    <div class="tile arff" onclick="openMap('Fire-Hydrants-FDC','Fire Hydrants & FDC','Airport-wide','arff')">
+      <span class="t-ico">🚒</span><span class="t-name">Fire Hydrants & FDC</span><span class="t-sub">Airport-wide</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Water-Arch-Locations','Water Arch Locations','Airside Ops','arff')">
+      <span class="t-ico">💧</span><span class="t-name">Water Arch Locations</span><span class="t-sub">Airside Ops</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Rainbow-Movement-Area','Rainbow Movement Area','Airside / Frequencies','arff')">
+      <span class="t-ico">🛬</span><span class="t-name">Rainbow Movement Area</span><span class="t-sub">Airside / Frequencies</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Gate-Numbers-Airline-Assignments','Gate Numbers & Airlines','w/ Alert Codes','arff')">
+      <span class="t-ico">🚨</span><span class="t-name">Gate Numbers & Airlines</span><span class="t-sub">w/ Alert Codes</span><span class="t-arr">›</span>
+    </div>
+  </div>
+
+  <div class="sec">✈️ Aircraft Rescue Cards</div>
+  <div class="grid">
+    <div class="tile wide" onclick="showAcList()" style="border-color:var(--purple);background:var(--purple-bg);grid-column:span 2;">
+      <span class="t-ico">✈️</span>
+      <div class="ti"><div class="t-name">Aircraft ARFC Library</div><div class="t-sub" style="color:#8a6fc7">Airbus · Boeing · Regional — Rescue & Firefighting Cards</div></div>
+      <span class="t-arr" style="position:static;opacity:1;color:var(--purple);font-size:20px;">›</span>
+    </div>
+  </div>
+
+  <div class="sec">🏢 Terminal 1</div>
+  <div class="grid">
+    <div class="tile" onclick="openMap('A-Gates-Concessions-L2','A-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🅰️</span><span class="t-name">A-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('B-Gates-Concessions-L2','B-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🅱️</span><span class="t-name">B-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('C-Gates-Concessions-L2','C-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🇨</span><span class="t-name">C-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Esplanade-Concessions-L2','T1 Esplanade','Concessions L2','terminal')">
+      <span class="t-ico">🏬</span><span class="t-name">T1 Esplanade</span><span class="t-sub">Concessions L2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Baggage-Claim-L1','T1 Baggage Claim','Level 1','terminal')">
+      <span class="t-ico">🧳</span><span class="t-name">T1 Baggage Claim</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Ticketing-Baggage-Claim-L1','T1 Ticketing','Level 1','terminal')">
+      <span class="t-ico">🎫</span><span class="t-name">T1 Ticketing</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+  </div>
+
+  <div class="sec">🏢 Terminal 3</div>
+  <div class="grid">
+    <div class="tile" onclick="openMap('D-Gates-Concessions-L2','D-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🇩</span><span class="t-name">D-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('D-Gates-Concessions-L0','D-Gates Concessions','Level 0','terminal')">
+      <span class="t-ico">🇩</span><span class="t-name">D-Gates Concessions</span><span class="t-sub">Level 0</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Concessions-L0-L2','T3 Concessions','L0 & L2','terminal')">
+      <span class="t-ico">🏬</span><span class="t-name">T3 Concessions</span><span class="t-sub">L0 & L2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level0','Terminal 3','Level 0','terminal')">
+      <span class="t-ico">0️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 0</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level1','Terminal 3','Level 1','terminal')">
+      <span class="t-ico">1️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level2','Terminal 3','Level 2','terminal')">
+      <span class="t-ico">2️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAP VIEWER -->
+<div id="map-screen" class="screen">
+  <img id="map-img" src="" alt="" draggable="false">
+  <div id="map-spinner" class="vspinner"><div class="sp"></div><p id="map-spin-txt">Loading…</p></div>
+</div>
+
+<!-- AIRCRAFT LIST -->
+<div id="ac-list-screen" class="screen">
+  <div class="sec" style="margin-top:4px">Airbus</div><div id="airbus-list"></div>
+  <div class="sec">Boeing</div><div id="boeing-list"></div>
+  <div class="sec">Regional</div><div id="regional-list"></div>
+</div>
+
+<!-- AIRCRAFT VIEWER -->
+<div id="ac-screen" class="screen">
+  <img id="ac-img" src="" alt="" draggable="false">
+  <div id="ac-spinner" class="vspinner"><div class="sp"></div><p id="ac-spin-txt">Loading…</p></div>
+</div>
+
+<div id="zoom-ctrl">
+  <button class="zbtn" onclick="zoom(1.5)">+</button>
+  <button class="zbtn" id="fit-btn" onclick="fitActive()">FIT</button>
+  <button class="zbtn" onclick="zoom(1/1.5)">&#8722;</button>
+</div>
+<div id="map-ind" class="ind-pill"></div>
+<div id="ac-ind" class="ind-pill"></div>
+
+<script>
+// ── AIRCRAFT REGISTRY ──
+// ADD NEW AIRCRAFT HERE when new PDFs are processed
+const AIRCRAFT = [
+  {key:'Airbus_A220',     name:'Airbus A220-100',     sub:'Crash Fire Rescue Card',          pages:2,  group:'airbus'},
+  {key:'Airbus_A220-300', name:'Airbus A220-300',     sub:'Crash Fire Rescue Card',          pages:2,  group:'airbus'},
+  {key:'Airbus_A320',     name:'Airbus A320/A320neo', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus'},
+  {key:'Airbus_A321',     name:'Airbus A321/A321neo', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus'},
+  {key:'Airbus_A330-200', name:'Airbus A330-200/300', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus'},
+  {key:'Airbus_A350',     name:'Airbus A350-1000',    sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus'},
+  {key:'Airbus_A380',     name:'Airbus A380-800',     sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus'},
+  {key:'Boeing_737',      name:'Boeing 737',          sub:'Aircraft Rescue & Firefighting',  pages:14, group:'boeing'},
+  {key:'Boeing_737MAX',   name:'Boeing 737 MAX',      sub:'Aircraft Rescue & Firefighting',  pages:8,  group:'boeing'},
+  {key:'Boeing_767',      name:'Boeing 767 (UPS)',    sub:'Aircraft Rescue & Firefighting',  pages:8,  group:'boeing'},
+  {key:'Boeing_777',      name:'Boeing 777',          sub:'Aircraft Rescue & Firefighting',  pages:28, group:'boeing'},
+  {key:'Boeing_787',      name:'Boeing 787',          sub:'Aircraft Rescue & Firefighting',  pages:10, group:'boeing'},
+  {key:'Embraer_145',     name:'Embraer 145 (JSX)',   sub:'Aircraft Rescue & Firefighting',  pages:6,  group:'regional'},
+];
+
+// ── STATE ──
+let curScreen='home', activeViewer=null;
+let mapFile='', mapTitle='', mapCat='';
+let acData=null, acPage=1;
+let scale=1, ox=0, oy=0;
+let dragging=false, lx=0, ly=0, ldist=0, pinching=false;
+
+// ── SCREEN MANAGEMENT ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id+'-screen').classList.add('active');
+  curScreen=id;
+}
+
+function setHdr(title, sub, cat, back, arrows) {
+  document.getElementById('hdr-title').textContent=title;
+  document.getElementById('hdr-sub').textContent=sub;
+  const b=document.getElementById('hdr-badge');
+  if(cat==='arff'){b.textContent='🔥 ARFF';b.className='hdr-badge b-arff';b.style.display='';}
+  else if(cat==='terminal'){b.textContent='TERMINAL';b.className='hdr-badge b-term';b.style.display='';}
+  else if(cat==='ac'){b.textContent='✈️ ARFC';b.className='hdr-badge b-ac';b.style.display='';}
+  else{b.style.display='none';}
+  document.getElementById('back-btn').classList.toggle('visible',back);
+  document.getElementById('nav-arrows').classList.toggle('visible',arrows);
+}
+
+function hideOverlays() {
+  document.getElementById('zoom-ctrl').classList.remove('visible');
+  document.getElementById('map-ind').classList.remove('visible');
+  document.getElementById('ac-ind').classList.remove('visible');
+}
+
+function goBack() {
+  hideOverlays();
+  if(curScreen==='map'||curScreen==='ac') {
+    if(curScreen==='ac') {showScreen('ac-list');setHdr('Aircraft ARFC Library','Rescue & Firefighting Cards','ac',true,false);}
+    else {showScreen('home');setHdr('KLAS ARFF Reference','Harry Reid International Airport',null,false,false);}
+  } else {
+    showScreen('home');
+    setHdr('KLAS ARFF Reference','Harry Reid International Airport',null,false,false);
+  }
+  activeViewer=null;
+}
+
+// ── MAP VIEWER ──
+function openMap(file, title, sub, cat) {
+  mapFile=file; mapTitle=title; mapCat=cat;
+  showScreen('map'); activeViewer='map';
+  setHdr(title, sub+' · Harry Reid International', cat, true, false);
+  document.getElementById('zoom-ctrl').classList.add('visible');
+  document.getElementById('map-ind').classList.add('visible');
+  loadMapImg(file, title);
+}
+
+function loadMapImg(file, label) {
+  const img=document.getElementById('map-img');
+  const sp=document.getElementById('map-spinner');
+  img.classList.remove('visible');
+  sp.classList.remove('hidden');
+  document.getElementById('map-spin-txt').textContent=label||file;
+  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateMapInd();};
+  img.onerror=()=>{document.getElementById('map-spin-txt').textContent='Error loading map';};
+  img.src=file+'.jpg';
+}
+
+// ── AIRCRAFT LIST ──
+function showAcList() {
+  showScreen('ac-list');
+  setHdr('Aircraft ARFC Library','Rescue & Firefighting Cards','ac',true,false);
+  buildAcList();
+}
+
+function buildAcList() {
+  ['airbus','boeing','regional'].forEach(g=>{
+    const el=document.getElementById(g+'-list');
+    el.innerHTML='';
+    AIRCRAFT.filter(a=>a.group===g).forEach(ac=>{
+      const d=document.createElement('div');
+      d.className='ac-tile';
+      d.innerHTML=`<span class="ac-ico">✈️</span><div class="ac-info"><div class="ac-name">${ac.name}</div><div class="ac-sub">${ac.sub}</div></div><span class="ac-pages">${ac.pages} pg</span>`;
+      d.onclick=()=>openAc(ac);
+      el.appendChild(d);
+    });
+  });
+}
+
+// ── AIRCRAFT VIEWER ──
+function openAc(ac) {
+  acData=ac; acPage=1;
+  showScreen('ac'); activeViewer='ac';
+  setHdr(ac.name, ac.sub, 'ac', true, ac.pages>1);
+  document.getElementById('zoom-ctrl').classList.add('visible');
+  document.getElementById('ac-ind').classList.add('visible');
+  loadAcImg();
+}
+
+function loadAcImg() {
+  const img=document.getElementById('ac-img');
+  const sp=document.getElementById('ac-spinner');
+  img.classList.remove('visible');
+  sp.classList.remove('hidden');
+  document.getElementById('ac-spin-txt').textContent=acData.name+' — Page '+acPage+' of '+acData.pages;
+  const pg=acData.pages>9?String(acPage).padStart(2,'0'):String(acPage);
+  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateAcInd();};
+  img.onerror=()=>{document.getElementById('ac-spin-txt').textContent='Error — check aircraft/ folder';};
+  img.src=acData.key+'-page'+pg+'.jpg';
+}
+
+function nav(dir) {
+  if(activeViewer==='ac'&&acData){
+    acPage=(acPage+dir-1+acData.pages)%acData.pages+1;
+    loadAcImg();
+  }
+}
+
+// ── FIT / ZOOM ──
+function getViewerEl(){return document.getElementById(activeViewer==='ac'?'ac-screen':'map-screen');}
+function getImgEl(){return document.getElementById(activeViewer==='ac'?'ac-img':'map-img');}
+
+function fitActive() {
+  const vEl=getViewerEl(), iEl=getImgEl();
+  const vw=vEl.clientWidth, vh=vEl.clientHeight;
+  const iw=iEl.naturalWidth, ih=iEl.naturalHeight;
+  if(!iw||!ih) return;
+  scale=Math.min(vw/iw,vh/ih);
+  ox=(vw-iw*scale)/2; oy=(vh-ih*scale)/2;
+  applyT();
+}
+
+function zoom(f) {
+  const vEl=getViewerEl();
+  const cx=vEl.clientWidth/2, cy=vEl.clientHeight/2;
+  const ns=Math.min(Math.max(scale*f,0.15),12);
+  ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; applyT();
+}
+
+function applyT() {
+  const img=getImgEl();
+  if(img) img.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;
+  updateMapInd(); updateAcInd();
+}
+
+function updateMapInd(){if(activeViewer==='map'){const el=document.getElementById('map-ind');el.textContent=Math.round(scale*100)+'%';}}
+function updateAcInd(){if(activeViewer==='ac'&&acData){const el=document.getElementById('ac-ind');el.textContent='Page '+acPage+' / '+acData.pages+'  ·  '+Math.round(scale*100)+'%';}}
+
+// ── TOUCH / MOUSE ──
+function addViewerEvents(elId) {
+  const el=document.getElementById(elId);
+  el.addEventListener('mousedown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+  el.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const f=e.deltaY<0?1.15:1/1.15, r=el.getBoundingClientRect();
+    const cx=e.clientX-r.left, cy=e.clientY-r.top;
+    const ns=Math.min(Math.max(scale*f,0.15),12);
+    ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; applyT();
+  },{passive:false});
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){dragging=true;pinching=false;lx=e.touches[0].clientX;ly=e.touches[0].clientY;}
+    else if(e.touches.length===2){pinching=true;dragging=false;ldist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchmove',e=>{
+    if(pinching&&e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      const r=el.getBoundingClientRect(), cx=mx-r.left, cy=my-r.top;
+      const ns=Math.min(Math.max(scale*(d/ldist),0.15),12);
+      ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; ldist=d; applyT();
+    } else if(dragging&&e.touches.length===1){
+      ox+=e.touches[0].clientX-lx; oy+=e.touches[0].clientY-ly;
+      lx=e.touches[0].clientX; ly=e.touches[0].clientY; applyT();
+    }
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchend',e=>{if(e.touches.length<2)pinching=false;if(e.touches.length===0)dragging=false;});
+  let lastTap=0;
+  el.addEventListener('touchend',e=>{
+    const now=Date.now();
+    if(now-lastTap<300&&e.changedTouches.length===1){
+      const t=e.changedTouches[0], r=el.getBoundingClientRect();
+      const cx=t.clientX-r.left, cy=t.clientY-r.top;
+      let ns; if(scale<1.2)ns=2.5; else if(scale<3)ns=5; else{fitActive();lastTap=0;return;}
+      const s=Math.min(Math.max(ns,0.15),12);
+      ox=cx-(cx-ox)*(s/scale); oy=cy-(cy-oy)*(s/scale); scale=s; applyT(); e.preventDefault();
+    }
+    lastTap=now;
+  });
+}
+
+window.addEventListener('mousemove',e=>{if(!dragging)return;ox+=e.clientX-lx;oy+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyT();});
+window.addEventListener('mouseup',()=>dragging=false);
+addViewerEvents('map-screen');
+addViewerEvents('ac-screen');
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')nav(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')nav(-1);
+  if(e.key==='f'||e.key==='F')fitActive();
+  if(e.key==='Escape'||e.key==='Backspace')goBack();
+});
+</script>
+</body>
+</html>
