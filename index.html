@@ -81,6 +81,69 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 #fit-btn{font-size:13px;font-weight:800;}
 .ind-pill{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.93);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--muted);backdrop-filter:blur(8px);z-index:160;pointer-events:none;white-space:nowrap;display:none;}
 .ind-pill.visible{display:block;}
+
+/* ── INCIDENT BUTTON ── */
+#incident-fab{position:fixed;bottom:28px;left:16px;z-index:250;background:#ff3b30;color:#fff;border:none;border-radius:16px;padding:0 20px;height:64px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 24px rgba(255,59,48,0.55);display:flex;align-items:center;gap:8px;letter-spacing:0.3px;-webkit-tap-highlight-color:transparent;}
+#incident-fab:active{opacity:.8;}
+#incident-fab.has-incident{animation:fabPulse 2s ease-in-out infinite;}
+@keyframes fabPulse{0%,100%{box-shadow:0 4px 24px rgba(255,59,48,0.55);}50%{box-shadow:0 4px 36px rgba(255,59,48,0.9),0 0 0 6px rgba(255,59,48,0.2);}}
+
+/* ── VOICE MODAL ── */
+#incident-modal{position:fixed;inset:0;z-index:300;background:rgba(13,17,23,0.97);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:60px;}
+#incident-modal.open{display:flex;}
+#modal-close{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--muted);width:44px;height:44px;border-radius:10px;font-size:22px;cursor:pointer;}
+#modal-title{font-size:22px;font-weight:900;color:#ff3b30;margin-bottom:6px;}
+#modal-sub{font-size:13px;color:var(--muted);margin-bottom:36px;text-align:center;}
+#mic-btn{width:120px;height:120px;border-radius:60px;background:#ff3b30;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 0 0 0 rgba(255,59,48,0.4);transition:transform .1s;}
+#mic-btn.listening{animation:micPulse 1.4s ease-in-out infinite;}
+#mic-btn:active{transform:scale(.93);}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(255,59,48,0.5);}70%{box-shadow:0 0 0 28px rgba(255,59,48,0);}100%{box-shadow:0 0 0 0 rgba(255,59,48,0);}}
+#mic-status{margin-top:18px;font-size:13px;color:var(--muted);height:20px;}
+#transcript-box{width:min(500px,90vw);min-height:80px;max-height:180px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);line-height:1.6;margin-top:24px;white-space:pre-wrap;}
+#transcript-box.empty{color:var(--muted);font-style:italic;}
+#modal-actions{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(500px,90vw);}
+.modal-btn{width:100%;height:56px;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;border:none;}
+#btn-parse{background:#ff6b35;color:#fff;}
+#btn-parse:disabled{opacity:.4;}
+#btn-manual{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:14px;height:44px;}
+#api-key-row{width:min(500px,90vw);display:none;flex-direction:column;gap:8px;margin-top:8px;}
+#api-key-input{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);outline:none;width:100%;}
+#api-key-input:focus{border-color:#ff6b35;}
+#api-key-hint{font-size:10px;color:var(--muted);text-align:center;}
+#parse-spinner{display:none;color:var(--muted);font-size:13px;margin-top:8px;}
+
+/* ── INCIDENT PIN ── */
+#incident-pin{position:absolute;display:none;align-items:center;justify-content:center;z-index:50;transform:translate(-50%,-50%);pointer-events:none;}
+.pin-ring{width:36px;height:36px;border-radius:50%;background:rgba(255,59,48,0.25);border:3px solid #ff3b30;animation:pinPulse 1.5s ease-out infinite;position:absolute;}
+.pin-dot{width:18px;height:18px;border-radius:50%;background:#ff3b30;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);position:relative;z-index:1;}
+.pin-label{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#ff3b30;color:#fff;font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.pin-label::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#ff3b30;}
+@keyframes pinPulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2.2);opacity:0;}}
+
+/* ── INCIDENT PANEL ── */
+#incident-panel{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:2px solid #ff3b30;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;display:flex;flex-direction:column;}
+#incident-panel.open{transform:translateY(0);}
+#incident-panel.collapsed{transform:translateY(calc(100% - 56px));}
+#panel-handle{padding:12px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;cursor:pointer;}
+#panel-active-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900;color:#ff3b30;text-transform:uppercase;letter-spacing:1px;}
+.active-dot{width:10px;height:10px;border-radius:50%;background:#ff3b30;animation:dotBlink 1s ease-in-out infinite alternate;}
+@keyframes dotBlink{from{opacity:1;}to{opacity:.3;}}
+#panel-collapse-btn{background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;font-size:16px;cursor:pointer;}
+#panel-body{flex:1;overflow-y:auto;padding:12px 20px 16px;}
+.panel-field{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #1e242c;}
+.panel-field:last-of-type{border-bottom:none;}
+.pf-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-right:12px;}
+.pf-value{font-size:18px;font-weight:800;color:var(--text);text-align:right;}
+.pf-value.rwy{color:#ff6b35;font-size:22px;}
+#loc-btns{display:flex;gap:6px;margin:8px 0 4px;}
+.loc-btn{flex:1;height:34px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;}
+.loc-btn.active{border-color:#ff3b30;color:#ff3b30;background:#2d1a0e;}
+#panel-actions{display:flex;gap:8px;padding:10px 20px 20px;flex-shrink:0;flex-wrap:wrap;}
+.pact-btn{flex:1;min-width:calc(50% - 4px);height:52px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;border:none;}
+#pact-rescue{background:var(--purple-bg);border:1px solid var(--purple);color:var(--purple);}
+#pact-track{background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue);}
+#pact-fullmap{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+#pact-clear{background:#2d1a0e;border:1px solid #ff3b30;color:#ff3b30;}
 </style>
 </head>
 <body>
@@ -175,10 +238,57 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
   </div>
 </div>
 
+<!-- FLOATING INCIDENT BUTTON — always on top of everything -->
+<button id="incident-fab" onclick="openIncidentModal()">🎙️ INCIDENT</button>
+
+<!-- VOICE / PARSE MODAL -->
+<div id="incident-modal">
+  <button id="modal-close" onclick="closeIncidentModal()">✕</button>
+  <div id="modal-title">🎙️ INCIDENT IMPORT</div>
+  <div id="modal-sub">Tap the mic and speak dispatch notes</div>
+  <button id="mic-btn" onclick="toggleListening()">🎙️</button>
+  <div id="mic-status">Tap to start listening</div>
+  <div id="transcript-box" class="empty">Transcript will appear here…</div>
+  <div id="modal-actions">
+    <button class="modal-btn" id="btn-parse" onclick="parseIncident()" disabled>⚡ Parse Incident</button>
+    <button class="modal-btn" id="btn-manual" onclick="showManualEntry()">✏️ Enter Manually</button>
+  </div>
+  <div id="api-key-row">
+    <input id="api-key-input" type="password" placeholder="Paste Anthropic API key (stored locally)">
+    <div id="api-key-hint">Key saved in this device's browser only · Never sent anywhere except Anthropic</div>
+  </div>
+  <div id="parse-spinner">⏳ Parsing with Claude…</div>
+</div>
+
+<!-- INCIDENT PANEL -->
+<div id="incident-panel">
+  <div id="panel-handle" onclick="togglePanelCollapse()">
+    <div id="panel-active-label"><span class="active-dot"></span>ACTIVE INCIDENT</div>
+    <button id="panel-collapse-btn">⌄</button>
+  </div>
+  <div id="panel-body">
+    <div class="panel-field"><span class="pf-label">Runway</span><span class="pf-value rwy" id="pf-runway">—</span></div>
+    <div id="loc-btns"></div>
+    <div class="panel-field"><span class="pf-label">Callsign</span><span class="pf-value" id="pf-callsign">—</span></div>
+    <div class="panel-field"><span class="pf-label">Aircraft</span><span class="pf-value" id="pf-aircraft">—</span></div>
+    <div class="panel-field"><span class="pf-label">Souls on Board</span><span class="pf-value" id="pf-souls">—</span></div>
+    <div class="panel-field"><span class="pf-label">Fuel on Board</span><span class="pf-value" id="pf-fuel">—</span></div>
+    <div class="panel-field"><span class="pf-label">Emergency</span><span class="pf-value" id="pf-emergency">—</span></div>
+    <div class="panel-field"><span class="pf-label">Frequency</span><span class="pf-value" id="pf-freq">—</span></div>
+  </div>
+  <div id="panel-actions">
+    <button class="pact-btn" id="pact-rescue" onclick="openRescueCard()">✈️ Rescue Card</button>
+    <button class="pact-btn" id="pact-track" onclick="trackFlight()">📡 Track Flight</button>
+    <button class="pact-btn" id="pact-fullmap" onclick="togglePanelCollapse()">🗺️ Full Map</button>
+    <button class="pact-btn" id="pact-clear" onclick="clearIncident()">🗑️ Clear Incident</button>
+  </div>
+</div>
+
 <!-- MAP VIEWER -->
 <div id="map-screen" class="screen">
   <img id="map-img" src="" alt="" draggable="false">
   <div id="map-spinner" class="vspinner"><div class="sp"></div><p id="map-spin-txt">Loading…</p></div>
+  <div id="incident-pin"><div class="pin-ring"></div><div class="pin-dot"></div><div class="pin-label" id="pin-label-text">RWY</div></div>
   <!-- 3D OVERLAY -->
   <div id="map-3d" style="position:absolute;inset:0;z-index:20;display:none;">
     <canvas id="canvas-3d" style="width:100%;height:100%;display:block;"></canvas>
@@ -421,6 +531,7 @@ function applyT() {
   const img=getImgEl();
   if(img) img.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;
   updateMapInd(); updateAcInd();
+  updateIncidentPin();
 }
 
 function updateMapInd(){if(activeViewer==='map'){const el=document.getElementById('map-ind');el.textContent=Math.round(scale*100)+'%';}}
@@ -480,6 +591,361 @@ window.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F')fitActive();
   if(e.key==='Escape'||e.key==='Backspace')goBack();
 });
+
+// ════════════════════════════════════════════════
+// INCIDENT IMPORT SYSTEM
+// ════════════════════════════════════════════════
+
+const RUNWAY_COORDS = {
+  _1R_Approach:    { x: 12.599, y: 76.869 },
+  _1R_Sierra:      { x: 23.909, y: 41.608 },
+  _1R_Departure:   { x: 33.631, y: 11.707 },
+  _19L_Approach:   { x: 33.036, y: 13.54  },
+  _19L_Departure:  { x: 11.905, y: 78.702 },
+  _19L_Sierra:     { x: 24.008, y: 42.031 },
+  _1L_Approach:    { x:  7.341, y: 75.599 },
+  _1L_Sierra:      { x: 19.345, y: 38.505 },
+  _1L_Departure:   { x: 28.77,  y:  9.873 },
+  _19R_Approach:   { x: 28.671, y: 10.296 },
+  _19R_Sierra:     { x: 19.544, y: 38.364 },
+  _19R_Departure:  { x:  7.54,  y: 75.176 },
+  _26R_Approach:   { x: 83.631, y: 73.766 },
+  _26R_Alpha5:     { x: 45.139, y: 73.766 },
+  _26R_Departure:  { x:  8.135, y: 74.189 },
+  _8L_Approach:    { x:  9.623, y: 74.189 },
+  _8L_Alpha5:      { x: 45.139, y: 73.766 },
+  _8L_Departure:   { x: 84.524, y: 74.189 },
+  _26L_Approach:   { x: 78.175, y: 81.241 },
+  _26L_Alpha5:     { x: 49.702, y: 81.805 },
+  _26L_Departure:  { x: 22.321, y: 81.664 },
+  _8R_Approach:    { x: 22.421, y: 81.805 },
+  _8R_Alpha5:      { x: 49.901, y: 82.228 },
+  _8R_Departure:   { x: 78.373, y: 81.241 },
+  Station_13:      { x: 29.266, y: 57.264 },
+  Holding_pad_1:   { x: 31.151, y: 64.175 },
+  South_tear_drop: { x: 28.869, y: 44.852 },
+  Holding_pad_4:   { x: 59.226, y: 66.15  }
+};
+
+// ── State ──
+let incident = null;           // active incident data
+let recognition = null;        // SpeechRecognition instance
+let isListening = false;
+let transcript = '';
+let panelCollapsed = false;
+let currentLocKey = null;      // which RUNWAY_COORDS key the pin is at
+
+// ── Modal open/close ──
+function openIncidentModal() {
+  if(incident && !confirm('An incident is active. Start a new one?')) return;
+  transcript = '';
+  updateTranscriptBox('');
+  document.getElementById('btn-parse').disabled = true;
+  document.getElementById('parse-spinner').style.display = 'none';
+  document.getElementById('incident-modal').classList.add('open');
+  checkApiKey();
+}
+function closeIncidentModal() {
+  stopListening();
+  document.getElementById('incident-modal').classList.remove('open');
+}
+
+// ── API key management ──
+function checkApiKey() {
+  const key = localStorage.getItem('arff_claude_key');
+  const row = document.getElementById('api-key-row');
+  if(!key) {
+    row.style.display = 'flex';
+    document.getElementById('api-key-input').value = '';
+  } else {
+    row.style.display = 'none';
+  }
+}
+function getApiKey() {
+  const stored = localStorage.getItem('arff_claude_key');
+  if(stored) return stored;
+  const typed = document.getElementById('api-key-input').value.trim();
+  if(typed) { localStorage.setItem('arff_claude_key', typed); return typed; }
+  return null;
+}
+
+// ── Speech Recognition ──
+function toggleListening() {
+  isListening ? stopListening() : startListening();
+}
+function startListening() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) {
+    // Fallback: make transcript box editable
+    const tb = document.getElementById('transcript-box');
+    tb.contentEditable = 'true';
+    tb.classList.remove('empty');
+    tb.textContent = '';
+    tb.focus();
+    document.getElementById('mic-status').textContent = 'Speech not supported — type notes above';
+    document.getElementById('btn-parse').disabled = false;
+    return;
+  }
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  let finalText = transcript;
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText += t + ' ';
+      else interim = t;
+    }
+    transcript = finalText;
+    updateTranscriptBox(finalText + interim);
+    document.getElementById('btn-parse').disabled = (finalText + interim).trim().length < 5;
+  };
+  recognition.onerror = (e) => {
+    document.getElementById('mic-status').textContent = 'Mic error: ' + e.error;
+    isListening = false;
+    document.getElementById('mic-btn').classList.remove('listening');
+    document.getElementById('mic-btn').textContent = '🎙️';
+  };
+  recognition.onend = () => {
+    if(isListening) recognition.start(); // keep going until manually stopped
+  };
+  recognition.start();
+  isListening = true;
+  document.getElementById('mic-btn').classList.add('listening');
+  document.getElementById('mic-btn').textContent = '⏹️';
+  document.getElementById('mic-status').textContent = '● Listening… tap to stop';
+}
+function stopListening() {
+  if(recognition) { try{ recognition.stop(); }catch(e){} recognition = null; }
+  isListening = false;
+  document.getElementById('mic-btn').classList.remove('listening');
+  document.getElementById('mic-btn').textContent = '🎙️';
+  document.getElementById('mic-status').textContent = 'Tap to start listening';
+}
+function updateTranscriptBox(text) {
+  const tb = document.getElementById('transcript-box');
+  if(!text) { tb.textContent = 'Transcript will appear here…'; tb.classList.add('empty'); return; }
+  tb.textContent = text;
+  tb.classList.remove('empty');
+}
+
+// ── Claude API parse ──
+async function parseIncident() {
+  const key = getApiKey();
+  if(!key) {
+    document.getElementById('api-key-row').style.display = 'flex';
+    document.getElementById('api-key-input').focus();
+    alert('Please paste your Anthropic API key above first.');
+    return;
+  }
+  const text = transcript.trim() || document.getElementById('transcript-box').textContent.trim();
+  if(text.length < 5) { alert('No transcript to parse.'); return; }
+
+  stopListening();
+  document.getElementById('parse-spinner').style.display = 'block';
+  document.getElementById('btn-parse').disabled = true;
+
+  const SYSTEM = `You are an ARFF dispatcher assistant at Harry Reid International Airport (KLAS). Extract incident data from spoken dispatch notes. Return ONLY valid JSON with these fields: runway (string e.g. "26L"), callsign (string), aircraft_type (string — match as closely as possible to one of: A220-100, A220-300, A320, A321, A330, A350, A380, B737, B737MAX, B767, B777, B787, E145), souls_on_board (number or null), fuel_on_board (string with units), emergency_type (string), frequency (string). If a field is not mentioned return null.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 300,
+        system: SYSTEM,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    if(!res.ok) {
+      const err = await res.text();
+      throw new Error('API error ' + res.status + ': ' + err);
+    }
+
+    const data = await res.json();
+    const jsonStr = data.content[0].text.trim();
+    const parsed = JSON.parse(jsonStr);
+    closeIncidentModal();
+    activateIncident(parsed, text);
+  } catch(e) {
+    document.getElementById('parse-spinner').style.display = 'none';
+    document.getElementById('btn-parse').disabled = false;
+    if(e.message.includes('401')) { localStorage.removeItem('arff_claude_key'); }
+    alert('Parse failed: ' + e.message + '\n\nCheck API key or use manual entry.');
+  }
+}
+
+// ── Manual entry fallback ──
+function showManualEntry() {
+  const data = {
+    runway: prompt('Runway (e.g. 26L):'),
+    callsign: prompt('Callsign:'),
+    aircraft_type: prompt('Aircraft type (e.g. B737, A320):'),
+    souls_on_board: parseInt(prompt('Souls on board:')) || null,
+    fuel_on_board: prompt('Fuel on board:'),
+    emergency_type: prompt('Emergency type:'),
+    frequency: prompt('Frequency:')
+  };
+  closeIncidentModal();
+  activateIncident(data, '');
+}
+
+// ── Aircraft fuzzy match ──
+function matchAircraftType(typeStr) {
+  if(!typeStr) return null;
+  const t = typeStr.toUpperCase().replace(/[-_ ]/g,'');
+  const MAP = [
+    [['A220300','A2203','A220-3'], 'Airbus_A220-300'],
+    [['A220100','A2201','A220'],   'Airbus_A220'],
+    [['A321NEO','A321'],           'Airbus_A321'],
+    [['A320NEO','A320'],           'Airbus_A320'],
+    [['A330'],                     'Airbus_A330-200'],
+    [['A350'],                     'Airbus_A350'],
+    [['A380'],                     'Airbus_A380'],
+    [['737MAX','B737MAX'],         'Boeing_737MAX'],
+    [['B737','737'],               'Boeing_737'],
+    [['B767','767'],               'Boeing_767'],
+    [['B777','777'],               'Boeing_777'],
+    [['B787','787','DREAMLINER'],  'Boeing_787'],
+    [['E145','ERJ145','EMBRAER'],  'Embraer_145'],
+  ];
+  for(const [pats, key] of MAP) {
+    if(pats.some(p => t.includes(p.replace(/[-_ ]/g,'')))) {
+      return AIRCRAFT.find(a => a.key === key) || null;
+    }
+  }
+  return null;
+}
+
+// ── Runway coords match ──
+function getRunwayKeys(runwayStr) {
+  if(!runwayStr) return [];
+  const rwy = runwayStr.toUpperCase().replace(/\s/g,'');
+  const prefix = '_' + rwy + '_';
+  return Object.keys(RUNWAY_COORDS).filter(k => k.toUpperCase().startsWith('_' + rwy + '_') || k.toUpperCase() === '_' + rwy);
+}
+function pickCoordKey(runwayStr, preference) {
+  const keys = getRunwayKeys(runwayStr);
+  if(!keys.length) return null;
+  if(preference === 'approach') return keys.find(k => k.toLowerCase().includes('approach')) || keys[0];
+  if(preference === 'departure') return keys.find(k => k.toLowerCase().includes('departure')) || keys[keys.length-1];
+  // default: midpoint (not approach, not departure)
+  return keys.find(k => !k.toLowerCase().includes('approach') && !k.toLowerCase().includes('departure')) || keys[0];
+}
+
+// ── Activate incident ──
+function activateIncident(data, rawTranscript) {
+  const matchedAC = matchAircraftType(data.aircraft_type);
+  const coordKey  = pickCoordKey(data.runway, 'mid');
+  const coord     = coordKey ? RUNWAY_COORDS[coordKey] : null;
+  const rwyKeys   = getRunwayKeys(data.runway);
+
+  incident = { ...data, matchedAC, coord, coordKey, rwyKeys, rawTranscript };
+  currentLocKey = coordKey;
+
+  // Fill panel fields
+  document.getElementById('pf-runway').textContent    = data.runway || '—';
+  document.getElementById('pf-callsign').textContent  = data.callsign || '—';
+  document.getElementById('pf-aircraft').textContent  = matchedAC ? matchedAC.name : (data.aircraft_type || '—');
+  document.getElementById('pf-souls').textContent     = data.souls_on_board != null ? data.souls_on_board : '—';
+  document.getElementById('pf-fuel').textContent      = data.fuel_on_board || '—';
+  document.getElementById('pf-emergency').textContent = data.emergency_type || '—';
+  document.getElementById('pf-freq').textContent      = data.frequency || '—';
+
+  // Build location selector buttons
+  const locDiv = document.getElementById('loc-btns');
+  locDiv.innerHTML = '';
+  rwyKeys.forEach(key => {
+    const label = key.replace(/^_[^_]+_/, '').replace(/_/g,' ');
+    const b = document.createElement('button');
+    b.className = 'loc-btn' + (key === coordKey ? ' active' : '');
+    b.textContent = label;
+    b.onclick = () => { movePin(key); document.querySelectorAll('.loc-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    locDiv.appendChild(b);
+  });
+  if(!coord) {
+    const b = document.createElement('button');
+    b.className='loc-btn'; b.textContent='No coords — pick manually';
+    locDiv.appendChild(b);
+  }
+
+  // Update FAB
+  document.getElementById('incident-fab').classList.add('has-incident');
+
+  // Navigate to Rainbow Movement Area and show panel
+  openMap('Rainbow-Movement-Area','Rainbow Movement Area','Active Incident','arff');
+  document.getElementById('incident-panel').classList.add('open');
+  document.getElementById('incident-panel').classList.remove('collapsed');
+  panelCollapsed = false;
+
+  // Pin will appear via updateIncidentPin() called from applyT() after fitActive()
+}
+
+// ── Move pin to a different location ──
+function movePin(key) {
+  currentLocKey = key;
+  if(incident) incident.coord = RUNWAY_COORDS[key];
+  updateIncidentPin();
+}
+
+// ── Update pin position (called from applyT) ──
+function updateIncidentPin() {
+  const pin = document.getElementById('incident-pin');
+  if(!pin) return;
+  if(!incident || !incident.coord || curScreen !== 'map' || mapFile !== 'Rainbow-Movement-Area') {
+    pin.style.display = 'none';
+    return;
+  }
+  const img = document.getElementById('map-img');
+  if(!img.naturalWidth) { pin.style.display = 'none'; return; }
+  const px = ox + (incident.coord.x / 100) * img.naturalWidth  * scale;
+  const py = oy + (incident.coord.y / 100) * img.naturalHeight * scale;
+  pin.style.left    = px + 'px';
+  pin.style.top     = py + 'px';
+  pin.style.display = 'flex';
+  document.getElementById('pin-label-text').textContent = 'RWY ' + (incident.runway || '');
+}
+
+// ── Panel collapse ──
+function togglePanelCollapse() {
+  const panel = document.getElementById('incident-panel');
+  panelCollapsed = !panelCollapsed;
+  panel.classList.toggle('collapsed', panelCollapsed);
+  document.getElementById('panel-collapse-btn').textContent = panelCollapsed ? '⌃' : '⌄';
+}
+
+// ── Panel actions ──
+function openRescueCard() {
+  if(!incident) return;
+  const ac = incident.matchedAC;
+  if(ac) { openAc(ac); return; }
+  // No match — show picker
+  const names = AIRCRAFT.map((a,i)=>`${i+1}. ${a.name}`).join('\n');
+  const idx = parseInt(prompt('Aircraft not matched. Pick:\n' + names)) - 1;
+  if(idx >= 0 && idx < AIRCRAFT.length) openAc(AIRCRAFT[idx]);
+}
+function trackFlight() {
+  if(!incident || !incident.callsign) return;
+  window.open('https://flightaware.com/live/flight/' + encodeURIComponent(incident.callsign), '_blank');
+}
+function clearIncident() {
+  if(!confirm('Clear active incident?')) return;
+  incident = null; currentLocKey = null;
+  document.getElementById('incident-panel').classList.remove('open','collapsed');
+  document.getElementById('incident-fab').classList.remove('has-incident');
+  document.getElementById('incident-pin').style.display = 'none';
+  panelCollapsed = false;
+}
 </script>
 
 <script type="module">
