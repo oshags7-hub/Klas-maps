@@ -74,7 +74,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .cname{font-size:14px;font-weight:600;color:var(--text);}
 .cnum{font-size:15px;font-weight:700;color:#3fb950;text-decoration:none;letter-spacing:0.5px;}
 .cnum:active{opacity:.6;}
-#zoom-ctrl{position:fixed;bottom:28px;right:16px;display:none;flex-direction:column;gap:8px;z-index:160;}
+#zoom-ctrl{position:fixed;bottom:110px;right:16px;display:none;flex-direction:column;gap:8px;z-index:160;}
 #zoom-ctrl.visible{display:flex;}
 .zbtn{width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid var(--border);color:var(--text);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
 .zbtn:active{opacity:.6;}
@@ -83,7 +83,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .ind-pill.visible{display:block;}
 
 /* ── INCIDENT BUTTON ── */
-#incident-fab{position:fixed;bottom:28px;left:16px;z-index:250;background:#ff3b30;color:#fff;border:none;border-radius:16px;padding:0 20px;height:64px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 24px rgba(255,59,48,0.55);display:flex;align-items:center;gap:8px;letter-spacing:0.3px;-webkit-tap-highlight-color:transparent;}
+#incident-fab{position:fixed;bottom:28px;right:16px;z-index:250;background:#ff3b30;color:#fff;border:none;border-radius:16px;padding:0 20px;height:64px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 24px rgba(255,59,48,0.55);display:flex;align-items:center;gap:8px;letter-spacing:0.3px;-webkit-tap-highlight-color:transparent;}
 #incident-fab:active{opacity:.8;}
 #incident-fab.has-incident{animation:fabPulse 2s ease-in-out infinite;}
 @keyframes fabPulse{0%,100%{box-shadow:0 4px 24px rgba(255,59,48,0.55);}50%{box-shadow:0 4px 36px rgba(255,59,48,0.9),0 0 0 6px rgba(255,59,48,0.2);}}
@@ -597,34 +597,31 @@ window.addEventListener('keydown',e=>{
 // ════════════════════════════════════════════════
 
 const RUNWAY_COORDS = {
-  _1R_Approach:    { x: 12.599, y: 76.869 },
-  _1R_Sierra:      { x: 23.909, y: 41.608 },
-  _1R_Departure:   { x: 33.631, y: 11.707 },
-  _19L_Approach:   { x: 33.036, y: 13.54  },
-  _19L_Departure:  { x: 11.905, y: 78.702 },
-  _19L_Sierra:     { x: 24.008, y: 42.031 },
-  _1L_Approach:    { x:  7.341, y: 75.599 },
-  _1L_Sierra:      { x: 19.345, y: 38.505 },
-  _1L_Departure:   { x: 28.77,  y:  9.873 },
-  _19R_Approach:   { x: 28.671, y: 10.296 },
-  _19R_Sierra:     { x: 19.544, y: 38.364 },
-  _19R_Departure:  { x:  7.54,  y: 75.176 },
-  _26R_Approach:   { x: 83.631, y: 73.766 },
-  _26R_Alpha5:     { x: 45.139, y: 73.766 },
-  _26R_Departure:  { x:  8.135, y: 74.189 },
-  _8L_Approach:    { x:  9.623, y: 74.189 },
-  _8L_Alpha5:      { x: 45.139, y: 73.766 },
-  _8L_Departure:   { x: 84.524, y: 74.189 },
-  _26L_Approach:   { x: 78.175, y: 81.241 },
-  _26L_Alpha5:     { x: 49.702, y: 81.805 },
-  _26L_Departure:  { x: 22.321, y: 81.664 },
-  _8R_Approach:    { x: 22.421, y: 81.805 },
-  _8R_Alpha5:      { x: 49.901, y: 82.228 },
-  _8R_Departure:   { x: 78.373, y: 81.241 },
-  Station_13:      { x: 29.266, y: 57.264 },
-  Holding_pad_1:   { x: 31.151, y: 64.175 },
-  South_tear_drop: { x: 28.869, y: 44.852 },
-  Holding_pad_4:   { x: 59.226, y: 66.15  }
+  _26R_Approach:   { x: 84.364, y: 79.942 },
+  _26R_Alpha5:     { x: 45.091, y: 80.223 },
+  _26R_Departure:  { x:  9.636, y: 80.364 },
+  _8L_Approach:    { x:  9.636, y: 80.364 },
+  _8L_Alpha5:      { x: 45.273, y: 80.083 },
+  _8L_Departure:   { x: 84.364, y: 80.223 },
+  _26L_Approach:   { x: 77.545, y: 88.372 },
+  _26L_Alpha_5:    { x: 50.364, y: 89.496 },
+  _26L_Departure:  { x: 22.818, y: 89.355 },
+  _8R_Approach:    { x: 22.909, y: 89.496 },
+  _8R_Alpha_5:     { x: 50.455, y: 89.777 },
+  _8R_Departure:   { x: 77.636, y: 88.372 },
+  _1R_Approach:    { x: 12.091, y: 86.124 },
+  _1R_Sierra:      { x: 24.091, y: 45.099 },
+  _1R_Departure:   { x: 33.545, y: 13.066 },
+  _19L_Approach:   { x: 33.545, y: 13.066 },
+  _19L_Sierra:     { x: 24.182, y: 45.380 },
+  _19L_Departure:  { x: 12.364, y: 85.843 },
+  _19R_Departure:  { x:  8.727, y: 78.116 },
+  _19R_Sierra:     { x: 19.273, y: 41.727 },
+  _19R_Approach:   { x: 28.818, y: 10.256 },
+  South_Tear_Drop: { x: 29.091, y: 49.314 },
+  Holding_Pad_1:   { x: 31.364, y: 69.686 },
+  Holding_pad_4:   { x: 59.455, y: 71.934 },
+  Station_13:      { x: 28.909, y: 61.678 }
 };
 
 // ── State ──
@@ -687,7 +684,7 @@ function startListening() {
     return;
   }
   recognition = new SR();
-  recognition.continuous = true;
+  recognition.continuous = false;   // iOS Safari requires false + manual restart
   recognition.interimResults = true;
   recognition.lang = 'en-US';
   let finalText = transcript;
@@ -704,13 +701,19 @@ function startListening() {
     document.getElementById('btn-parse').disabled = (finalText + interim).trim().length < 5;
   };
   recognition.onerror = (e) => {
+    if(e.error === 'aborted' || e.error === 'no-speech') {
+      // iOS aborts frequently — silently restart after a delay
+      if(isListening) setTimeout(()=>{ try{ recognition.start(); }catch(x){} }, 250);
+      return;
+    }
     document.getElementById('mic-status').textContent = 'Mic error: ' + e.error;
     isListening = false;
     document.getElementById('mic-btn').classList.remove('listening');
     document.getElementById('mic-btn').textContent = '🎙️';
   };
   recognition.onend = () => {
-    if(isListening) recognition.start(); // keep going until manually stopped
+    // Restart with a short delay — iOS needs breathing room between sessions
+    if(isListening) setTimeout(()=>{ try{ recognition.start(); }catch(x){} }, 200);
   };
   recognition.start();
   isListening = true;
@@ -748,7 +751,23 @@ async function parseIncident() {
   document.getElementById('parse-spinner').style.display = 'block';
   document.getElementById('btn-parse').disabled = true;
 
-  const SYSTEM = `You are an ARFF dispatcher assistant at Harry Reid International Airport (KLAS). Extract incident data from spoken dispatch notes. Return ONLY valid JSON with these fields: runway (string e.g. "26L"), callsign (string), aircraft_type (string — match as closely as possible to one of: A220-100, A220-300, A320, A321, A330, A350, A380, B737, B737MAX, B767, B777, B787, E145), souls_on_board (number or null), fuel_on_board (string with units), emergency_type (string), frequency (string). If a field is not mentioned return null.`;
+  const SYSTEM = `You are an ARFF dispatcher assistant at Harry Reid International Airport (KLAS). Extract incident data from spoken dispatch notes. Return ONLY valid JSON with these fields: runway (string e.g. "26L"), callsign (string e.g. "WN123" or "AAL456"), aircraft_type (string — match as closely as possible to one of: A220-100, A220-300, A320, A321, A330, A350, A380, B737, B737MAX, B767, B777, B787, E145), souls_on_board (number or null), fuel_on_board (string with units), emergency_type (string), frequency (string). If a field is not mentioned return null.
+
+IMPORTANT — if the aircraft type is not explicitly stated but you know the callsign/airline, infer aircraft_type from common fleet knowledge:
+- WN (Southwest) → B737
+- NK (Spirit) → A321
+- G4 (Allegiant) → A320
+- AS (Alaska) → B737
+- F9 (Frontier) → A321
+- AA / AAL (American) → B737 or A321 (default B737)
+- UA / UAL (United) → B737 or A320 (default B737)
+- DL / DAL (Delta) → B737 or A220 (default B737)
+- B6 / JBU (JetBlue) → A220 or A321 (default A321)
+- HA / HAL (Hawaiian) → A321
+- JS / JSX (JSX) → E145
+- 5X / UPS (UPS) → B767
+- FX / FDX (FedEx) → B777
+If you infer the aircraft type, still set aircraft_type to your best guess rather than null.`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -775,8 +794,21 @@ async function parseIncident() {
     const data = await res.json();
     const jsonStr = data.content[0].text.trim();
     const parsed = JSON.parse(jsonStr);
+
+    // If Claude couldn't identify the aircraft type, try live ADS-B lookup
+    let preMatchedAC = matchAircraftType(parsed.aircraft_type);
+    if(!preMatchedAC && parsed.callsign) {
+      document.getElementById('parse-spinner').style.display = 'block';
+      const adsb = await lookupFlightAircraft(parsed.callsign);
+      if(adsb) {
+        preMatchedAC = adsb;
+        // Back-fill aircraft_type with the matched name so the panel shows it
+        parsed.aircraft_type = adsb.name;
+      }
+    }
+
     closeIncidentModal();
-    activateIncident(parsed, text);
+    activateIncident(parsed, text, preMatchedAC);
   } catch(e) {
     document.getElementById('parse-spinner').style.display = 'none';
     document.getElementById('btn-parse').disabled = false;
@@ -798,6 +830,49 @@ function showManualEntry() {
   };
   closeIncidentModal();
   activateIncident(data, '');
+}
+
+// ── ICAO aircraft type code → app key ──
+const ICAO_TYPE_MAP = [
+  [['B38M','B39M'],                          'Boeing_737MAX'],
+  [['B738','B737','B73H','B736','B735','B734','B733','B732'], 'Boeing_737'],
+  [['B763','B764','B762'],                   'Boeing_767'],
+  [['B772','B773','B77L','B77W','B77F'],     'Boeing_777'],
+  [['B788','B789','B78X'],                   'Boeing_787'],
+  [['A21N','A321'],                          'Airbus_A321'],
+  [['A20N','A319','A318','A320'],            'Airbus_A320'],
+  [['A339','A338','A332','A333'],            'Airbus_A330-200'],
+  [['A35K','A359'],                          'Airbus_A350'],
+  [['A388'],                                 'Airbus_A380'],
+  [['BCS3'],                                 'Airbus_A220-300'],
+  [['BCS1'],                                 'Airbus_A220'],
+  [['E145','E45X','E135','E140'],            'Embraer_145'],
+];
+
+function mapIcaoType(code) {
+  if(!code) return null;
+  const c = code.toUpperCase().trim();
+  for(const [codes, key] of ICAO_TYPE_MAP) {
+    if(codes.includes(c)) return AIRCRAFT.find(a => a.key === key) || null;
+  }
+  return null;
+}
+
+// ── Live ADS-B lookup by callsign ──
+async function lookupFlightAircraft(callsign) {
+  if(!callsign) return null;
+  const cs = callsign.trim().toUpperCase().replace(/\s+/g,'');
+  try {
+    const res = await fetch('https://api.adsb.lol/v2/callsign/' + encodeURIComponent(cs), { signal: AbortSignal.timeout(5000) });
+    if(!res.ok) return null;
+    const data = await res.json();
+    // api.adsb.lol returns { ac: [ { t: "B738", ... }, ... ] }
+    const ac = (data.ac || [])[0];
+    if(!ac) return null;
+    return mapIcaoType(ac.t);
+  } catch(e) {
+    return null; // timeout or network error — fail silently
+  }
 }
 
 // ── Aircraft fuzzy match ──
@@ -844,8 +919,8 @@ function pickCoordKey(runwayStr, preference) {
 }
 
 // ── Activate incident ──
-function activateIncident(data, rawTranscript) {
-  const matchedAC = matchAircraftType(data.aircraft_type);
+function activateIncident(data, rawTranscript, preMatchedAC) {
+  const matchedAC = preMatchedAC !== undefined ? preMatchedAC : matchAircraftType(data.aircraft_type);
   const coordKey  = pickCoordKey(data.runway, 'mid');
   const coord     = coordKey ? RUNWAY_COORDS[coordKey] : null;
   const rwyKeys   = getRunwayKeys(data.runway);
