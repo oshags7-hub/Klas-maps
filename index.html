@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>KLAS ARFF Reference</title>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<style>
+:root {
+  --bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+  --arff:#ff6b35;--arff-bg:#2d1a0e;--blue:#388bfd;--blue-bg:#0d1f38;
+  --purple:#a371f7;--purple-bg:#1a0d38;--hdr:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;}
+#hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100;}
+#back-btn{background:none;border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:10px;font-size:20px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+#back-btn.visible{display:flex;}
+#back-btn:active{opacity:.6;}
+#hdr-info{flex:1;min-width:0;}
+#hdr-title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#hdr-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.hdr-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.b-arff{background:var(--arff-bg);color:var(--arff);border:1px solid var(--arff);}
+.b-term{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue);}
+.b-ac{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);}
+#nav-arrows{display:none;gap:6px;flex-shrink:0;}
+#nav-arrows.visible{display:flex;}
+.arr{background:#21262d;border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:10px;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.arr:active{opacity:.6;}
+.screen{position:fixed;top:var(--hdr);left:0;right:0;bottom:0;transform:translateX(100%);transition:transform .25s ease;background:var(--bg);}
+.screen.active{transform:translateX(0);}
+#home-screen{transform:translateX(0);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 10px 6px;}
+.sec{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;padding:0 2px;}
+.sec:first-child{margin-top:2px;}
+.sec.terminal{font-size:13px;font-weight:800;letter-spacing:0.5px;color:var(--text);text-transform:uppercase;margin:12px 0 6px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;cursor:pointer;text-align:center;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;overflow:hidden;height:120px;}
+.tile:active{opacity:.7;}
+.tile.arff{border-color:var(--arff);background:var(--arff-bg);}
+.tile.wide{grid-column:span 4;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:12px;height:50px;padding:0 14px;}
+.tile.wide .ti{flex:1;}
+.t-ico{display:none;}
+.t-name{font-size:13px;font-weight:800;line-height:1.3;}
+.wide .t-name{font-size:14px;}
+.t-sub{font-size:9px;color:var(--muted);line-height:1.2;}
+.t-arr{font-size:10px;color:var(--muted);opacity:.5;}
+.wide .t-arr{position:static;opacity:1;font-size:18px;margin-left:auto;}
+#map-screen,#ac-screen{touch-action:none;background:#0a0a0a;}
+#map-img,#ac-img{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none;-webkit-user-select:none;display:block;max-width:none;opacity:0;transition:opacity .2s;}
+#map-img.visible,#ac-img.visible{opacity:1;}
+.vspinner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0a0a0a;z-index:10;}
+.vspinner.hidden{display:none;}
+.sp{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--arff);border-radius:50%;animation:spin .8s linear infinite;}
+.vspinner p{font-size:14px;color:var(--muted);}
+@keyframes spin{to{transform:rotate(360deg);}}
+#ac-list-screen{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 40px;}
+.ac-tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;color:var(--text);}
+.ac-tile:active{opacity:.7;}
+.ac-ico{font-size:32px;flex-shrink:0;}
+.ac-info{flex:1;}
+.ac-name{font-size:16px;font-weight:700;}
+.ac-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.ac-pages{font-size:11px;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple);border-radius:12px;padding:2px 8px;flex-shrink:0;}
+.contacts-group{margin-bottom:16px;}
+.cg-header{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:6px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.cg-header.arff-header{color:var(--arff);}
+.crow{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #1e242c;}
+.crow.csub{font-size:10px;color:var(--muted);padding:3px 4px 6px;border-bottom:none;justify-content:flex-start;}
+.cname{font-size:14px;font-weight:600;color:var(--text);}
+.cnum{font-size:15px;font-weight:700;color:#3fb950;text-decoration:none;letter-spacing:0.5px;}
+.cnum:active{opacity:.6;}
+#zoom-ctrl{position:fixed;bottom:110px;right:16px;display:none;flex-direction:column;gap:8px;z-index:160;}
+#zoom-ctrl.visible{display:flex;}
+.zbtn{width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid var(--border);color:var(--text);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
+.zbtn:active{opacity:.6;}
+#fit-btn{font-size:13px;font-weight:800;}
+.ind-pill{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.93);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--muted);backdrop-filter:blur(8px);z-index:160;pointer-events:none;white-space:nowrap;display:none;}
+.ind-pill.visible{display:block;}
+
+/* ── INCIDENT BUTTON ── */
+#incident-fab{position:fixed;bottom:28px;right:16px;z-index:250;background:#ff3b30;color:#fff;border:none;border-radius:16px;padding:0 20px;height:64px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 24px rgba(255,59,48,0.55);display:flex;align-items:center;gap:8px;letter-spacing:0.3px;-webkit-tap-highlight-color:transparent;}
+#incident-fab:active{opacity:.8;}
+#incident-fab.has-incident{animation:fabPulse 2s ease-in-out infinite;}
+@keyframes fabPulse{0%,100%{box-shadow:0 4px 24px rgba(255,59,48,0.55);}50%{box-shadow:0 4px 36px rgba(255,59,48,0.9),0 0 0 6px rgba(255,59,48,0.2);}}
+
+/* ── VOICE MODAL ── */
+#incident-modal{position:fixed;inset:0;z-index:300;background:rgba(13,17,23,0.97);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:60px;}
+#incident-modal.open{display:flex;}
+#modal-close{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--muted);width:44px;height:44px;border-radius:10px;font-size:22px;cursor:pointer;}
+#modal-title{font-size:22px;font-weight:900;color:#ff3b30;margin-bottom:6px;}
+#modal-sub{font-size:13px;color:var(--muted);margin-bottom:36px;text-align:center;}
+#mic-btn{width:120px;height:120px;border-radius:60px;background:#ff3b30;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 0 0 0 rgba(255,59,48,0.4);transition:transform .1s;}
+#mic-btn.listening{animation:micPulse 1.4s ease-in-out infinite;}
+#mic-btn:active{transform:scale(.93);}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(255,59,48,0.5);}70%{box-shadow:0 0 0 28px rgba(255,59,48,0);}100%{box-shadow:0 0 0 0 rgba(255,59,48,0);}}
+#mic-status{margin-top:18px;font-size:13px;color:var(--muted);height:20px;}
+#transcript-box{width:min(500px,90vw);min-height:80px;max-height:180px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);line-height:1.6;margin-top:24px;white-space:pre-wrap;}
+#transcript-box.empty{color:var(--muted);font-style:italic;}
+#modal-actions{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(500px,90vw);}
+.modal-btn{width:100%;height:56px;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;border:none;}
+#btn-parse{background:#ff6b35;color:#fff;}
+#btn-parse:disabled{opacity:.4;}
+#btn-manual{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:14px;height:44px;}
+#api-key-row{width:min(500px,90vw);display:none;flex-direction:column;gap:8px;margin-top:8px;}
+#api-key-input{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);outline:none;width:100%;}
+#api-key-input:focus{border-color:#ff6b35;}
+#api-key-hint{font-size:10px;color:var(--muted);text-align:center;}
+#parse-spinner{display:none;color:var(--muted);font-size:13px;margin-top:8px;}
+
+/* ── INCIDENT PIN ── */
+#incident-pin{position:absolute;display:none;align-items:center;justify-content:center;z-index:50;transform:translate(-50%,-50%);pointer-events:none;}
+.pin-ring{width:36px;height:36px;border-radius:50%;background:rgba(255,59,48,0.25);border:3px solid #ff3b30;animation:pinPulse 1.5s ease-out infinite;position:absolute;}
+.pin-dot{width:18px;height:18px;border-radius:50%;background:#ff3b30;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.6);position:relative;z-index:1;}
+.pin-label{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#ff3b30;color:#fff;font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.pin-label::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#ff3b30;}
+@keyframes pinPulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2.2);opacity:0;}}
+
+/* ── INCIDENT PANEL ── */
+#incident-panel{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:2px solid #ff3b30;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;display:flex;flex-direction:column;}
+#incident-panel.open{transform:translateY(0);}
+#incident-panel.collapsed{transform:translateY(calc(100% - 56px));}
+#panel-handle{padding:12px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;cursor:pointer;}
+#panel-active-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900;color:#ff3b30;text-transform:uppercase;letter-spacing:1px;}
+.active-dot{width:10px;height:10px;border-radius:50%;background:#ff3b30;animation:dotBlink 1s ease-in-out infinite alternate;}
+@keyframes dotBlink{from{opacity:1;}to{opacity:.3;}}
+#panel-collapse-btn{background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;font-size:16px;cursor:pointer;}
+#panel-body{flex:1;overflow-y:auto;padding:12px 20px 16px;}
+.panel-field{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #1e242c;}
+.panel-field:last-of-type{border-bottom:none;}
+.pf-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-right:12px;}
+.pf-value{font-size:18px;font-weight:800;color:var(--text);text-align:right;}
+.pf-value.rwy{color:#ff6b35;font-size:22px;}
+#loc-btns{display:flex;gap:6px;margin:8px 0 4px;}
+.loc-btn{flex:1;height:34px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;}
+.loc-btn.active{border-color:#ff3b30;color:#ff3b30;background:#2d1a0e;}
+#panel-actions{display:flex;gap:8px;padding:10px 20px 20px;flex-shrink:0;flex-wrap:wrap;}
+.pact-btn{flex:1;min-width:calc(50% - 4px);height:52px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;border:none;}
+#pact-rescue{background:var(--purple-bg);border:1px solid var(--purple);color:var(--purple);}
+#pact-track{background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue);}
+#pact-fullmap{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+#pact-clear{background:#2d1a0e;border:1px solid #ff3b30;color:#ff3b30;}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <button id="back-btn" onclick="goBack()">&#8592;</button>
+  <div id="hdr-info">
+    <div id="hdr-title">KLAS ARFF Reference</div>
+    <div id="hdr-sub">Harry Reid International Airport</div>
+  </div>
+  <span id="hdr-badge" class="hdr-badge" style="display:none"></span>
+  <button id="btn-3d" onclick="window.MapViewer3D&&window.MapViewer3D.toggle()" style="display:none;background:#1a0d38;border:1px solid var(--purple);color:var(--purple);height:36px;padding:0 12px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:0.5px;flex-shrink:0;">3D</button>
+  <div id="nav-arrows">
+    <button class="arr" onclick="nav(-1)">&#8249;</button>
+    <button class="arr" onclick="nav(1)">&#8250;</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" class="screen active">
+  <div class="sec">🔥 ARFF / Airside Critical</div>
+  <div class="grid">
+    <div class="tile arff" onclick="openMap('Fire-Hydrants-FDC','Fire Hydrants & FDC','Airport-wide','arff')">
+      <span class="t-ico">🚒</span><span class="t-name">Fire Hydrants & FDC</span><span class="t-sub">Airport-wide</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Water-Arch-Locations','Water Arch Locations','Airside Ops','arff')">
+      <span class="t-ico">💧</span><span class="t-name">Water Arch Locations</span><span class="t-sub">Airside Ops</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Rainbow-Movement-Area','Rainbow Movement Area','Airside / Frequencies','arff')">
+      <span class="t-ico">🛬</span><span class="t-name">Rainbow Movement Area</span><span class="t-sub">Airside / Frequencies</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile arff" onclick="openMap('Gate-Numbers-Airline-Assignments','Gate Numbers & Airlines','w/ Alert Codes','arff')">
+      <span class="t-ico">🚨</span><span class="t-name">Gate Numbers & Airlines</span><span class="t-sub">w/ Alert Codes</span><span class="t-arr">›</span>
+    </div>
+  </div>
+
+  <div class="sec terminal">Terminal 1</div>
+  <div class="grid">
+    <div class="tile" onclick="openMap('A-Gates-Concessions-L2','A-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🅰️</span><span class="t-name">A-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('B-Gates-Concessions-L2','B-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🅱️</span><span class="t-name">B-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('C-Gates-Concessions-L2','C-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🇨</span><span class="t-name">C-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Esplanade-Concessions-L2','T1 Esplanade','Concessions L2','terminal')">
+      <span class="t-ico">🏬</span><span class="t-name">T1 Esplanade</span><span class="t-sub">Concessions L2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Baggage-Claim-L1','T1 Baggage Claim','Level 1','terminal')">
+      <span class="t-ico">🧳</span><span class="t-name">T1 Baggage Claim</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('T1-Ticketing-Baggage-Claim-L1','T1 Ticketing','Level 1','terminal')">
+      <span class="t-ico">🎫</span><span class="t-name">T1 Ticketing</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+  </div>
+
+  <div class="sec terminal">Terminal 3</div>
+  <div class="grid">
+    <div class="tile" onclick="openMap('D-Gates-Concessions-L2','D-Gates Concessions','Level 2','terminal')">
+      <span class="t-ico">🇩</span><span class="t-name">D-Gates Concessions</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('D-Gates-Concessions-L0','D-Gates Concessions','Level 0','terminal')">
+      <span class="t-ico">🇩</span><span class="t-name">D-Gates Concessions</span><span class="t-sub">Level 0</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Concessions-L0-L2','T3 Concessions','L0 & L2','terminal')">
+      <span class="t-ico">🏬</span><span class="t-name">T3 Concessions</span><span class="t-sub">L0 & L2</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level0','Terminal 3','Level 0','terminal')">
+      <span class="t-ico">0️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 0</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level1','Terminal 3','Level 1','terminal')">
+      <span class="t-ico">1️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 1</span><span class="t-arr">›</span>
+    </div>
+    <div class="tile" onclick="openMap('Terminal3-Level2','Terminal 3','Level 2','terminal')">
+      <span class="t-ico">2️⃣</span><span class="t-name">Terminal 3</span><span class="t-sub">Level 2</span><span class="t-arr">›</span>
+    </div>
+  </div>
+
+  <div class="sec">✈️ Aircraft &amp; Tools</div>
+  <div class="grid">
+    <div class="tile" onclick="showAcList()" style="border-color:var(--purple);background:var(--purple-bg);">
+      <span class="t-name">Aircraft ARFC Library</span><span class="t-sub" style="color:#8a6fc7">Rescue Cards</span>
+    </div>
+    <div class="tile" onclick="window.open('https://www.flightradar24.com','_blank')" style="border-color:#388bfd;background:#0d1f38;">
+      <span class="t-name" style="color:#388bfd">FlightRadar24</span><span class="t-sub">Live Traffic</span>
+    </div>
+    <div class="tile" onclick="showContacts()" style="border-color:#3fb950;background:#0d2b1a;">
+      <span class="t-name" style="color:#3fb950">Quick Reference</span><span class="t-sub">Phone Numbers</span>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING INCIDENT BUTTON — always on top of everything -->
+<button id="incident-fab" onclick="openIncidentModal()">🎙️ INCIDENT</button>
+
+<!-- VOICE / PARSE MODAL -->
+<div id="incident-modal">
+  <button id="modal-close" onclick="closeIncidentModal()">✕</button>
+  <div id="modal-title">🎙️ INCIDENT IMPORT</div>
+  <div id="modal-sub">Tap the mic and speak dispatch notes</div>
+  <button id="mic-btn" onclick="toggleListening()">🎙️</button>
+  <div id="mic-status">Tap to start listening</div>
+  <div id="transcript-box" class="empty">Transcript will appear here…</div>
+  <div id="modal-actions">
+    <button class="modal-btn" id="btn-parse" onclick="parseIncident()" disabled>⚡ Parse Incident</button>
+    <button class="modal-btn" id="btn-manual" onclick="showManualEntry()">✏️ Enter Manually</button>
+  </div>
+  <div id="api-key-row">
+    <input id="api-key-input" type="password" placeholder="Paste Anthropic API key (stored locally)">
+    <div id="api-key-hint">Key saved in this device's browser only · Never sent anywhere except Anthropic</div>
+  </div>
+  <div id="parse-spinner">⏳ Parsing with Claude…</div>
+</div>
+
+<!-- INCIDENT PANEL -->
+<div id="incident-panel">
+  <div id="panel-handle" onclick="togglePanelCollapse()">
+    <div id="panel-active-label"><span class="active-dot"></span>ACTIVE INCIDENT</div>
+    <button id="panel-collapse-btn">⌄</button>
+  </div>
+  <div id="panel-body">
+    <div class="panel-field"><span class="pf-label">Runway</span><span class="pf-value rwy" id="pf-runway">—</span></div>
+    <div id="loc-btns"></div>
+    <div class="panel-field"><span class="pf-label">Callsign</span><span class="pf-value" id="pf-callsign">—</span></div>
+    <div class="panel-field"><span class="pf-label">Aircraft</span><span class="pf-value" id="pf-aircraft">—</span></div>
+    <div class="panel-field"><span class="pf-label">Souls on Board</span><span class="pf-value" id="pf-souls">—</span></div>
+    <div class="panel-field"><span class="pf-label">Fuel on Board</span><span class="pf-value" id="pf-fuel">—</span></div>
+    <div class="panel-field"><span class="pf-label">Emergency</span><span class="pf-value" id="pf-emergency">—</span></div>
+    <div class="panel-field"><span class="pf-label">Frequency</span><span class="pf-value" id="pf-freq">—</span></div>
+  </div>
+  <div id="panel-actions">
+    <button class="pact-btn" id="pact-rescue" onclick="openRescueCard()">✈️ Rescue Card</button>
+    <button class="pact-btn" id="pact-track" onclick="trackFlight()">📡 Track Flight</button>
+    <button class="pact-btn" id="pact-fullmap" onclick="togglePanelCollapse()">🗺️ Full Map</button>
+    <button class="pact-btn" id="pact-clear" onclick="clearIncident()">🗑️ Clear Incident</button>
+  </div>
+</div>
+
+<!-- MAP VIEWER -->
+<div id="map-screen" class="screen">
+  <img id="map-img" src="" alt="" draggable="false">
+  <div id="map-spinner" class="vspinner"><div class="sp"></div><p id="map-spin-txt">Loading…</p></div>
+  <div id="incident-pin"><div class="pin-ring"></div><div class="pin-dot"></div><div class="pin-label" id="pin-label-text">RWY</div></div>
+  <!-- 3D OVERLAY -->
+  <div id="map-3d" style="position:absolute;inset:0;z-index:20;display:none;">
+    <canvas id="canvas-3d" style="width:100%;height:100%;display:block;"></canvas>
+    <div id="hint-3d" style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.92);border:1px solid #30363d;border-radius:14px;padding:12px 20px;font-size:12px;color:#8b949e;text-align:center;pointer-events:none;backdrop-filter:blur(10px);transition:opacity 0.6s;white-space:nowrap;">
+      <div style="margin-bottom:4px;color:#e6edf3;font-weight:700;">3D Controls</div>
+      <div>☝️ One finger — Pan</div>
+      <div>✌️ Two fingers — Orbit &amp; Zoom</div>
+    </div>
+    <div style="position:absolute;bottom:28px;right:16px;display:flex;flex-direction:column;gap:8px;">
+      <button onclick="window.MapViewer3D&&window.MapViewer3D.topDown()" style="width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid #30363d;color:#e6edf3;font-size:11px;font-weight:800;cursor:pointer;backdrop-filter:blur(8px);">TOP</button>
+      <button onclick="window.MapViewer3D&&window.MapViewer3D.reset()" style="width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid #30363d;color:#e6edf3;font-size:11px;font-weight:800;cursor:pointer;backdrop-filter:blur(8px);">RESET</button>
+    </div>
+  </div>
+</div>
+
+<!-- AIRCRAFT LIST -->
+<div id="ac-list-screen" class="screen">
+  <div class="sec" style="margin-top:4px">Airbus</div><div id="airbus-list"></div>
+  <div class="sec">Boeing</div><div id="boeing-list"></div>
+  <div class="sec">Regional</div><div id="regional-list"></div>
+</div>
+
+<!-- CONTACTS SCREEN -->
+<div id="contacts-screen" class="screen" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div class="contacts-group">
+      <div class="cg-header arff-header">ARFF / Operations</div>
+      <div class="crow"><span class="cname">Control Center</span><a class="cnum" href="tel:2615135">261-5135/5125</a></div>
+      <div class="crow csub">800 MHz · Zone 4 · McCarran</div>
+      <div class="crow"><span class="cname">Tower</span><a class="cnum" href="tel:2615126">261-5126</a></div>
+      <div class="crow"><span class="cname">CCFD Dispatch</span><a class="cnum" href="tel:2290401">229-0401/0407</a></div>
+      <div class="crow"><span class="cname">Coordinators OFC</span><a class="cnum" href="tel:2615605">261-5605/5606</a></div>
+      <div class="crow"><span class="cname">220 – Coordinator Cell</span><a class="cnum" href="tel:5730220">573-0220</a></div>
+      <div class="crow csub">800 MHz · Zone 4 · Channel 7 · McCarran</div>
+      <div class="crow"><span class="cname">260 – Coordinator Cell</span><a class="cnum" href="tel:5730260">573-0260</a></div>
+      <div class="crow"><span class="cname">R-13</span><a class="cnum" href="tel:3006988">300-6988</a></div>
+    </div>
+    <div class="contacts-group">
+      <div class="cg-header">B2</div>
+      <div class="crow"><span class="cname">B2</span><a class="cnum" href="tel:2497308">249-7308</a></div>
+      <div class="crow"><span class="cname">B2 Red Line</span><a class="cnum" href="tel:0510">0510</a></div>
+      <div class="crow"><span class="cname">B2 Reg Line</span><a class="cnum" href="tel:4557336">455-7336</a></div>
+    </div>
+    <div class="contacts-group">
+      <div class="cg-header">EMS / Training</div>
+      <div class="crow"><span class="cname">EMS 2 / EMS SUP (271)</span><a class="cnum" href="tel:2838549">283-8549</a></div>
+      <div class="crow"><span class="cname">280 / Training OFCR</span><a class="cnum" href="tel:2497318">249-7318</a></div>
+    </div>
+    <div class="contacts-group">
+      <div class="cg-header">Metro / Security</div>
+      <div class="crow"><span class="cname">Metro – McCarran Dispatch</span><a class="cnum" href="tel:2615603">261-5603</a></div>
+      <div class="crow"><span class="cname">Metro – Sub Station</span><a class="cnum" href="tel:2614900">261-4900</a></div>
+      <div class="crow"><span class="cname">Automotive</span><a class="cnum" href="tel:2615634">261-5634</a></div>
+      <div class="crow"><span class="cname">Main Gate</span><a class="cnum" href="tel:2617291">261-7291</a></div>
+    </div>
+    <div class="contacts-group">
+      <div class="cg-header">FBOs / Ground Handlers</div>
+      <div class="crow"><span class="cname">Atlantic FBO</span><a class="cnum" href="tel:7361830">736-1830</a></div>
+      <div class="crow"><span class="cname">Signature FBO</span><a class="cnum" href="tel:7391100">739-1100</a></div>
+      <div class="crow"><span class="cname">ASIG / SWA</span><a class="cnum" href="tel:7391235">739-1235</a></div>
+      <div class="crow"><span class="cname">Swissport</span><a class="cnum" href="tel:2615483">261-5483</a></div>
+      <div class="crow"><span class="cname">Quail</span><a class="cnum" href="tel:2615483">261-5483</a></div>
+      <div class="crow"><span class="cname">POA</span><a class="cnum" href="tel:7982074">798-2074</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- AIRCRAFT VIEWER -->
+<div id="ac-screen" class="screen">
+  <img id="ac-img" src="" alt="" draggable="false">
+  <div id="ac-spinner" class="vspinner"><div class="sp"></div><p id="ac-spin-txt">Loading…</p></div>
+</div>
+
+<div id="zoom-ctrl">
+  <button class="zbtn" onclick="zoom(1.5)">+</button>
+  <button class="zbtn" id="fit-btn" onclick="fitActive()">FIT</button>
+  <button class="zbtn" onclick="zoom(1/1.5)">&#8722;</button>
+</div>
+<div id="map-ind" class="ind-pill"></div>
+<div id="ac-ind" class="ind-pill"></div>
+
+<script>
+// ── AIRCRAFT REGISTRY ──
+// ADD NEW AIRCRAFT HERE when new PDFs are processed
+const AIRCRAFT = [
+  {key:'Airbus_A220',     name:'Airbus A220-100',     sub:'Crash Fire Rescue Card',          pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A220-300', name:'Airbus A220-300',     sub:'Crash Fire Rescue Card',          pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A320',     name:'Airbus A320/A320neo', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A321',     name:'Airbus A321/A321neo', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A330-200', name:'Airbus A330-200/300', sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A350',     name:'Airbus A350-1000',    sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus', pad:false},
+  {key:'Airbus_A380',     name:'Airbus A380-800',     sub:'Aircraft Rescue & Firefighting',  pages:2,  group:'airbus', pad:false},
+  {key:'Boeing_737',      name:'Boeing 737',          sub:'Aircraft Rescue & Firefighting',  pages:14, group:'boeing', pad:true},
+  {key:'Boeing_737MAX',   name:'Boeing 737 MAX',      sub:'Aircraft Rescue & Firefighting',  pages:8,  group:'boeing', pad:true},
+  {key:'Boeing_767',      name:'Boeing 767 (UPS)',    sub:'Aircraft Rescue & Firefighting',  pages:8,  group:'boeing', pad:true},
+  {key:'Boeing_777',      name:'Boeing 777',          sub:'Aircraft Rescue & Firefighting',  pages:28, group:'boeing', pad:true},
+  {key:'Boeing_787',      name:'Boeing 787',          sub:'Aircraft Rescue & Firefighting',  pages:10, group:'boeing', pad:true},
+  {key:'Embraer_145',     name:'Embraer 145 (JSX)',   sub:'Aircraft Rescue & Firefighting',  pages:6,  group:'regional', pad:true},
+];
+
+// ── STATE ──
+let curScreen='home', activeViewer=null;
+let mapFile='', mapTitle='', mapCat='';
+let acData=null, acPage=1;
+let scale=1, ox=0, oy=0;
+let dragging=false, lx=0, ly=0, ldist=0, pinching=false;
+
+// ── SCREEN MANAGEMENT ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id+'-screen').classList.add('active');
+  curScreen=id;
+}
+
+function setHdr(title, sub, cat, back, arrows) {
+  document.getElementById('hdr-title').textContent=title;
+  document.getElementById('hdr-sub').textContent=sub;
+  const b=document.getElementById('hdr-badge');
+  if(cat==='arff'){b.textContent='🔥 ARFF';b.className='hdr-badge b-arff';b.style.display='';}
+  else if(cat==='terminal'){b.textContent='TERMINAL';b.className='hdr-badge b-term';b.style.display='';}
+  else if(cat==='ac'){b.textContent='✈️ ARFC';b.className='hdr-badge b-ac';b.style.display='';}
+  else{b.style.display='none';}
+  document.getElementById('back-btn').classList.toggle('visible',back);
+  document.getElementById('nav-arrows').classList.toggle('visible',arrows);
+}
+
+function hideOverlays() {
+  document.getElementById('zoom-ctrl').classList.remove('visible');
+  document.getElementById('map-ind').classList.remove('visible');
+  document.getElementById('ac-ind').classList.remove('visible');
+}
+
+function goBack() {
+  hideOverlays();
+  if(window.MapViewer3D) window.MapViewer3D.showToggle(false);
+  if(curScreen==='ac') {showScreen('ac-list');setHdr('Aircraft ARFC Library','Rescue & Firefighting Cards','ac',true,false);}
+  else {showScreen('home');setHdr('KLAS ARFF Reference','Harry Reid International Airport',null,false,false);}
+  activeViewer=null;
+}
+
+function showContacts() {
+  showScreen('contacts');
+  setHdr('Quick Reference','ARFF Telephone Numbers',null,true,false);
+}
+
+// ── MAP VIEWER ──
+function openMap(file, title, sub, cat) {
+  mapFile=file; mapTitle=title; mapCat=cat;
+  showScreen('map'); activeViewer='map';
+  setHdr(title, sub+' · Harry Reid International', cat, true, false);
+  document.getElementById('zoom-ctrl').classList.add('visible');
+  document.getElementById('map-ind').classList.add('visible');
+  if(window.MapViewer3D) window.MapViewer3D.showToggle(file==='Gate-Numbers-Airline-Assignments');
+  loadMapImg(file, title);
+}
+
+function loadMapImg(file, label) {
+  const img=document.getElementById('map-img');
+  const sp=document.getElementById('map-spinner');
+  img.classList.remove('visible');
+  sp.classList.remove('hidden');
+  document.getElementById('map-spin-txt').textContent=label||file;
+  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateMapInd();};
+  img.onerror=()=>{document.getElementById('map-spin-txt').textContent='Error loading map';};
+  img.src=file+'.jpg';
+}
+
+// ── AIRCRAFT LIST ──
+function showAcList() {
+  showScreen('ac-list');
+  setHdr('Aircraft ARFC Library','Rescue & Firefighting Cards','ac',true,false);
+  buildAcList();
+}
+
+function buildAcList() {
+  ['airbus','boeing','regional'].forEach(g=>{
+    const el=document.getElementById(g+'-list');
+    el.innerHTML='';
+    AIRCRAFT.filter(a=>a.group===g).forEach(ac=>{
+      const d=document.createElement('div');
+      d.className='ac-tile';
+      d.innerHTML=`<span class="ac-ico">✈️</span><div class="ac-info"><div class="ac-name">${ac.name}</div><div class="ac-sub">${ac.sub}</div></div><span class="ac-pages">${ac.pages} pg</span>`;
+      d.onclick=()=>openAc(ac);
+      el.appendChild(d);
+    });
+  });
+}
+
+// ── AIRCRAFT VIEWER ──
+function openAc(ac) {
+  acData=ac; acPage=1;
+  showScreen('ac'); activeViewer='ac';
+  setHdr(ac.name, ac.sub, 'ac', true, ac.pages>1);
+  document.getElementById('zoom-ctrl').classList.add('visible');
+  document.getElementById('ac-ind').classList.add('visible');
+  loadAcImg();
+}
+
+function loadAcImg() {
+  const img=document.getElementById('ac-img');
+  const sp=document.getElementById('ac-spinner');
+  img.classList.remove('visible');
+  sp.classList.remove('hidden');
+  document.getElementById('ac-spin-txt').textContent=acData.name+' — Page '+acPage+' of '+acData.pages;
+  const pg=acData.pad?String(acPage).padStart(2,'0'):String(acPage);
+  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateAcInd();};
+  img.onerror=()=>{document.getElementById('ac-spin-txt').textContent='Error — check aircraft/ folder';};
+  img.src=acData.key+'-page'+pg+'.jpg';
+}
+
+function nav(dir) {
+  if(activeViewer==='ac'&&acData){
+    acPage=(acPage+dir-1+acData.pages)%acData.pages+1;
+    loadAcImg();
+  }
+}
+
+// ── FIT / ZOOM ──
+function getViewerEl(){return document.getElementById(activeViewer==='ac'?'ac-screen':'map-screen');}
+function getImgEl(){return document.getElementById(activeViewer==='ac'?'ac-img':'map-img');}
+
+function fitActive() {
+  const vEl=getViewerEl(), iEl=getImgEl();
+  const vw=vEl.clientWidth, vh=vEl.clientHeight;
+  const iw=iEl.naturalWidth, ih=iEl.naturalHeight;
+  if(!iw||!ih) return;
+  scale=Math.min(vw/iw,vh/ih);
+  ox=(vw-iw*scale)/2; oy=(vh-ih*scale)/2;
+  applyT();
+}
+
+function zoom(f) {
+  const vEl=getViewerEl();
+  const cx=vEl.clientWidth/2, cy=vEl.clientHeight/2;
+  const ns=Math.min(Math.max(scale*f,0.15),12);
+  ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; applyT();
+}
+
+function applyT() {
+  const img=getImgEl();
+  if(img) img.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;
+  updateMapInd(); updateAcInd();
+  updateIncidentPin();
+}
+
+function updateMapInd(){if(activeViewer==='map'){const el=document.getElementById('map-ind');el.textContent=Math.round(scale*100)+'%';}}
+function updateAcInd(){if(activeViewer==='ac'&&acData){const el=document.getElementById('ac-ind');el.textContent='Page '+acPage+' / '+acData.pages+'  ·  '+Math.round(scale*100)+'%';}}
+
+// ── TOUCH / MOUSE ──
+function addViewerEvents(elId) {
+  const el=document.getElementById(elId);
+  el.addEventListener('mousedown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+  el.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const f=e.deltaY<0?1.15:1/1.15, r=el.getBoundingClientRect();
+    const cx=e.clientX-r.left, cy=e.clientY-r.top;
+    const ns=Math.min(Math.max(scale*f,0.15),12);
+    ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; applyT();
+  },{passive:false});
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){dragging=true;pinching=false;lx=e.touches[0].clientX;ly=e.touches[0].clientY;}
+    else if(e.touches.length===2){pinching=true;dragging=false;ldist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchmove',e=>{
+    if(pinching&&e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      const r=el.getBoundingClientRect(), cx=mx-r.left, cy=my-r.top;
+      const ns=Math.min(Math.max(scale*(d/ldist),0.15),12);
+      ox=cx-(cx-ox)*(ns/scale); oy=cy-(cy-oy)*(ns/scale); scale=ns; ldist=d; applyT();
+    } else if(dragging&&e.touches.length===1){
+      ox+=e.touches[0].clientX-lx; oy+=e.touches[0].clientY-ly;
+      lx=e.touches[0].clientX; ly=e.touches[0].clientY; applyT();
+    }
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchend',e=>{if(e.touches.length<2)pinching=false;if(e.touches.length===0)dragging=false;});
+  let lastTap=0;
+  el.addEventListener('touchend',e=>{
+    const now=Date.now();
+    if(now-lastTap<300&&e.changedTouches.length===1){
+      const t=e.changedTouches[0], r=el.getBoundingClientRect();
+      const cx=t.clientX-r.left, cy=t.clientY-r.top;
+      let ns; if(scale<1.2)ns=2.5; else if(scale<3)ns=5; else{fitActive();lastTap=0;return;}
+      const s=Math.min(Math.max(ns,0.15),12);
+      ox=cx-(cx-ox)*(s/scale); oy=cy-(cy-oy)*(s/scale); scale=s; applyT(); e.preventDefault();
+    }
+    lastTap=now;
+  });
+}
+
+window.addEventListener('mousemove',e=>{if(!dragging)return;ox+=e.clientX-lx;oy+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyT();});
+window.addEventListener('mouseup',()=>dragging=false);
+addViewerEvents('map-screen');
+addViewerEvents('ac-screen');
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')nav(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')nav(-1);
+  if(e.key==='f'||e.key==='F')fitActive();
+  if(e.key==='Escape'||e.key==='Backspace')goBack();
+});
+
+// ════════════════════════════════════════════════
+// INCIDENT IMPORT SYSTEM
+// ════════════════════════════════════════════════
+
+const RUNWAY_COORDS = {
+  _26R_Approach:   { x: 84.364, y: 79.942 },
+  _26R_Alpha5:     { x: 45.091, y: 80.223 },
+  _26R_Departure:  { x:  9.636, y: 80.364 },
+  _8L_Approach:    { x:  9.636, y: 80.364 },
+  _8L_Alpha5:      { x: 45.273, y: 80.083 },
+  _8L_Departure:   { x: 84.364, y: 80.223 },
+  _26L_Approach:   { x: 77.545, y: 88.372 },
+  _26L_Alpha_5:    { x: 50.364, y: 89.496 },
+  _26L_Departure:  { x: 22.818, y: 89.355 },
+  _8R_Approach:    { x: 22.909, y: 89.496 },
+  _8R_Alpha_5:     { x: 50.455, y: 89.777 },
+  _8R_Departure:   { x: 77.636, y: 88.372 },
+  _1R_Approach:    { x: 12.091, y: 86.124 },
+  _1R_Sierra:      { x: 24.091, y: 45.099 },
+  _1R_Departure:   { x: 33.545, y: 13.066 },
+  _19L_Approach:   { x: 33.545, y: 13.066 },
+  _19L_Sierra:     { x: 24.182, y: 45.380 },
+  _19L_Departure:  { x: 12.364, y: 85.843 },
+  _19R_Departure:  { x:  8.727, y: 78.116 },
+  _19R_Sierra:     { x: 19.273, y: 41.727 },
+  _19R_Approach:   { x: 28.818, y: 10.256 },
+  South_Tear_Drop: { x: 29.091, y: 49.314 },
+  Holding_Pad_1:   { x: 31.364, y: 69.686 },
+  Holding_pad_4:   { x: 59.455, y: 71.934 },
+  Station_13:      { x: 28.909, y: 61.678 }
+};
+
+// ── State ──
+let incident = null;           // active incident data
+let recognition = null;        // SpeechRecognition instance
+let isListening = false;
+let transcript = '';
+let panelCollapsed = false;
+let currentLocKey = null;      // which RUNWAY_COORDS key the pin is at
+
+// ── Modal open/close ──
+function openIncidentModal() {
+  if(incident && !confirm('An incident is active. Start a new one?')) return;
+  transcript = '';
+  updateTranscriptBox('');
+  document.getElementById('btn-parse').disabled = true;
+  document.getElementById('parse-spinner').style.display = 'none';
+  document.getElementById('incident-modal').classList.add('open');
+  checkApiKey();
+}
+function closeIncidentModal() {
+  stopListening();
+  document.getElementById('incident-modal').classList.remove('open');
+}
+
+// ── API key management ──
+function checkApiKey() {
+  const key = localStorage.getItem('arff_claude_key');
+  const row = document.getElementById('api-key-row');
+  if(!key) {
+    row.style.display = 'flex';
+    document.getElementById('api-key-input').value = '';
+  } else {
+    row.style.display = 'none';
+  }
+}
+function getApiKey() {
+  const stored = localStorage.getItem('arff_claude_key');
+  if(stored) return stored;
+  const typed = document.getElementById('api-key-input').value.trim();
+  if(typed) { localStorage.setItem('arff_claude_key', typed); return typed; }
+  return null;
+}
+
+// ── Speech Recognition ──
+function toggleListening() {
+  isListening ? stopListening() : startListening();
+}
+function startListening() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) {
+    // Fallback: make transcript box editable
+    const tb = document.getElementById('transcript-box');
+    tb.contentEditable = 'true';
+    tb.classList.remove('empty');
+    tb.textContent = '';
+    tb.focus();
+    document.getElementById('mic-status').textContent = 'Speech not supported — type notes above';
+    document.getElementById('btn-parse').disabled = false;
+    return;
+  }
+  isListening = true;
+  document.getElementById('mic-btn').classList.add('listening');
+  document.getElementById('mic-btn').textContent = '⏹️';
+  document.getElementById('mic-status').textContent = '● Listening… tap to stop';
+  createRecognition();
+}
+function createRecognition() {
+  // Always create a FRESH instance — reusing the same instance after iOS aborts or
+  // fires onerror is unreliable: .start() appears to succeed but audio is never
+  // processed and onresult never fires, so the transcript stays blank.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR || !isListening) return;
+  if(recognition) { try{ recognition.stop(); }catch(e){} }
+  recognition = new SR();
+  recognition.continuous = false;   // iOS Safari requires false + manual restart
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  let finalText = transcript;
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText += t + ' ';
+      else interim = t;
+    }
+    transcript = finalText;
+    updateTranscriptBox(finalText + interim);
+    document.getElementById('btn-parse').disabled = (finalText + interim).trim().length < 5;
+  };
+  recognition.onerror = (e) => {
+    // Fatal errors — surface as visible text so the user knows why nothing appeared
+    const FATAL_MSGS = {
+      'audio-capture':      '⚠️ No microphone found. Check that a mic is connected.',
+      'not-allowed':        '⚠️ Microphone permission denied.\nGo to Settings → Safari → Microphone and allow access.',
+      'service-not-allowed':'⚠️ Speech service unavailable on this device.'
+    };
+    if(FATAL_MSGS[e.error]) {
+      updateTranscriptBox(FATAL_MSGS[e.error]);
+      isListening = false;
+      document.getElementById('mic-btn').classList.remove('listening');
+      document.getElementById('mic-btn').textContent = '🎙️';
+      document.getElementById('mic-status').textContent = 'Tap to start listening';
+    }
+    // 'aborted' and 'no-speech' are handled silently by onend — no action needed here
+  };
+  recognition.onend = () => {
+    // onend always fires after any stop or error. Create a fresh instance each time
+    // rather than calling .start() on the old one — iOS requires this for reliable restarts.
+    if(isListening) setTimeout(createRecognition, 200);
+  };
+  try { recognition.start(); } catch(e) {}
+}
+function stopListening() {
+  if(recognition) { try{ recognition.stop(); }catch(e){} recognition = null; }
+  isListening = false;
+  document.getElementById('mic-btn').classList.remove('listening');
+  document.getElementById('mic-btn').textContent = '🎙️';
+  document.getElementById('mic-status').textContent = 'Tap to start listening';
+}
+function updateTranscriptBox(text) {
+  const tb = document.getElementById('transcript-box');
+  if(!text) { tb.textContent = 'Transcript will appear here…'; tb.classList.add('empty'); return; }
+  tb.textContent = text;
+  tb.classList.remove('empty');
+}
+
+// ── Claude API parse ──
+async function parseIncident() {
+  const key = getApiKey();
+  if(!key) {
+    document.getElementById('api-key-row').style.display = 'flex';
+    document.getElementById('api-key-input').focus();
+    alert('Please paste your Anthropic API key above first.');
+    return;
+  }
+  const text = transcript.trim() || document.getElementById('transcript-box').textContent.trim();
+  if(text.length < 5) { alert('No transcript to parse.'); return; }
+
+  stopListening();
+  document.getElementById('parse-spinner').style.display = 'block';
+  document.getElementById('btn-parse').disabled = true;
+
+  const SYSTEM = `You are an ARFF dispatcher assistant at Harry Reid International Airport (KLAS). Extract incident data from spoken dispatch notes. Return ONLY valid JSON with these fields: runway (string e.g. "26L"), callsign (string e.g. "WN123" or "AAL456"), aircraft_type (string — match as closely as possible to one of: A220-100, A220-300, A320, A321, A330, A350, A380, B737, B737MAX, B767, B777, B787, E145), souls_on_board (number or null), fuel_on_board (string with units), emergency_type (string), frequency (string). If a field is not mentioned return null.
+
+IMPORTANT — if the aircraft type is not explicitly stated but you know the callsign/airline, infer aircraft_type from common fleet knowledge:
+- WN (Southwest) → B737
+- NK (Spirit) → A321
+- G4 (Allegiant) → A320
+- AS (Alaska) → B737
+- F9 (Frontier) → A321
+- AA / AAL (American) → B737 or A321 (default B737)
+- UA / UAL (United) → B737 or A320 (default B737)
+- DL / DAL (Delta) → B737 or A220 (default B737)
+- B6 / JBU (JetBlue) → A220 or A321 (default A321)
+- HA / HAL (Hawaiian) → A321
+- JS / JSX (JSX) → E145
+- 5X / UPS (UPS) → B767
+- FX / FDX (FedEx) → B777
+If you infer the aircraft type, still set aircraft_type to your best guess rather than null.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 300,
+        system: SYSTEM,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    if(!res.ok) {
+      const err = await res.text();
+      throw new Error('API error ' + res.status + ': ' + err);
+    }
+
+    const data = await res.json();
+    const jsonStr = data.content[0].text.trim();
+    const parsed = JSON.parse(jsonStr);
+
+    // If Claude couldn't identify the aircraft type, try live ADS-B lookup
+    let preMatchedAC = matchAircraftType(parsed.aircraft_type);
+    if(!preMatchedAC && parsed.callsign) {
+      document.getElementById('parse-spinner').style.display = 'block';
+      const adsb = await lookupFlightAircraft(parsed.callsign);
+      if(adsb) {
+        preMatchedAC = adsb;
+        // Back-fill aircraft_type with the matched name so the panel shows it
+        parsed.aircraft_type = adsb.name;
+      }
+    }
+
+    closeIncidentModal();
+    activateIncident(parsed, text, preMatchedAC);
+  } catch(e) {
+    document.getElementById('parse-spinner').style.display = 'none';
+    document.getElementById('btn-parse').disabled = false;
+    if(e.message.includes('401')) { localStorage.removeItem('arff_claude_key'); }
+    alert('Parse failed: ' + e.message + '\n\nCheck API key or use manual entry.');
+  }
+}
+
+// ── Manual entry fallback ──
+function showManualEntry() {
+  const data = {
+    runway: prompt('Runway (e.g. 26L):'),
+    callsign: prompt('Callsign:'),
+    aircraft_type: prompt('Aircraft type (e.g. B737, A320):'),
+    souls_on_board: parseInt(prompt('Souls on board:')) || null,
+    fuel_on_board: prompt('Fuel on board:'),
+    emergency_type: prompt('Emergency type:'),
+    frequency: prompt('Frequency:')
+  };
+  closeIncidentModal();
+  activateIncident(data, '');
+}
+
+// ── ICAO aircraft type code → app key ──
+const ICAO_TYPE_MAP = [
+  [['B38M','B39M'],                          'Boeing_737MAX'],
+  [['B738','B737','B73H','B736','B735','B734','B733','B732'], 'Boeing_737'],
+  [['B763','B764','B762'],                   'Boeing_767'],
+  [['B772','B773','B77L','B77W','B77F'],     'Boeing_777'],
+  [['B788','B789','B78X'],                   'Boeing_787'],
+  [['A21N','A321'],                          'Airbus_A321'],
+  [['A20N','A319','A318','A320'],            'Airbus_A320'],
+  [['A339','A338','A332','A333'],            'Airbus_A330-200'],
+  [['A35K','A359'],                          'Airbus_A350'],
+  [['A388'],                                 'Airbus_A380'],
+  [['BCS3'],                                 'Airbus_A220-300'],
+  [['BCS1'],                                 'Airbus_A220'],
+  [['E145','E45X','E135','E140'],            'Embraer_145'],
+];
+
+function mapIcaoType(code) {
+  if(!code) return null;
+  const c = code.toUpperCase().trim();
+  for(const [codes, key] of ICAO_TYPE_MAP) {
+    if(codes.includes(c)) return AIRCRAFT.find(a => a.key === key) || null;
+  }
+  return null;
+}
+
+// ── Live ADS-B lookup by callsign ──
+async function lookupFlightAircraft(callsign) {
+  if(!callsign) return null;
+  const cs = callsign.trim().toUpperCase().replace(/\s+/g,'');
+  try {
+    const res = await fetch('https://api.adsb.lol/v2/callsign/' + encodeURIComponent(cs), { signal: AbortSignal.timeout(5000) });
+    if(!res.ok) return null;
+    const data = await res.json();
+    // api.adsb.lol returns { ac: [ { t: "B738", ... }, ... ] }
+    const ac = (data.ac || [])[0];
+    if(!ac) return null;
+    return mapIcaoType(ac.t);
+  } catch(e) {
+    return null; // timeout or network error — fail silently
+  }
+}
+
+// ── Aircraft fuzzy match ──
+function matchAircraftType(typeStr) {
+  if(!typeStr) return null;
+  const t = typeStr.toUpperCase().replace(/[-_ ]/g,'');
+  const MAP = [
+    [['A220300','A2203','A220-3'], 'Airbus_A220-300'],
+    [['A220100','A2201','A220'],   'Airbus_A220'],
+    [['A321NEO','A321'],           'Airbus_A321'],
+    [['A320NEO','A320'],           'Airbus_A320'],
+    [['A330'],                     'Airbus_A330-200'],
+    [['A350'],                     'Airbus_A350'],
+    [['A380'],                     'Airbus_A380'],
+    [['737MAX','B737MAX'],         'Boeing_737MAX'],
+    [['B737','737'],               'Boeing_737'],
+    [['B767','767'],               'Boeing_767'],
+    [['B777','777'],               'Boeing_777'],
+    [['B787','787','DREAMLINER'],  'Boeing_787'],
+    [['E145','ERJ145','EMBRAER'],  'Embraer_145'],
+  ];
+  for(const [pats, key] of MAP) {
+    if(pats.some(p => t.includes(p.replace(/[-_ ]/g,'')))) {
+      return AIRCRAFT.find(a => a.key === key) || null;
+    }
+  }
+  return null;
+}
+
+// ── Runway coords match ──
+function getRunwayKeys(runwayStr) {
+  if(!runwayStr) return [];
+  const rwy = runwayStr.toUpperCase().replace(/\s/g,'');
+  const prefix = '_' + rwy + '_';
+  return Object.keys(RUNWAY_COORDS).filter(k => k.toUpperCase().startsWith('_' + rwy + '_') || k.toUpperCase() === '_' + rwy);
+}
+function pickCoordKey(runwayStr, preference) {
+  const keys = getRunwayKeys(runwayStr);
+  if(!keys.length) return null;
+  if(preference === 'approach') return keys.find(k => k.toLowerCase().includes('approach')) || keys[0];
+  if(preference === 'departure') return keys.find(k => k.toLowerCase().includes('departure')) || keys[keys.length-1];
+  // default: midpoint (not approach, not departure)
+  return keys.find(k => !k.toLowerCase().includes('approach') && !k.toLowerCase().includes('departure')) || keys[0];
+}
+
+// ── Activate incident ──
+function activateIncident(data, rawTranscript, preMatchedAC) {
+  const matchedAC = preMatchedAC !== undefined ? preMatchedAC : matchAircraftType(data.aircraft_type);
+  const coordKey  = pickCoordKey(data.runway, 'mid');
+  const coord     = coordKey ? RUNWAY_COORDS[coordKey] : null;
+  const rwyKeys   = getRunwayKeys(data.runway);
+
+  incident = { ...data, matchedAC, coord, coordKey, rwyKeys, rawTranscript };
+  currentLocKey = coordKey;
+
+  // Fill panel fields
+  document.getElementById('pf-runway').textContent    = data.runway || '—';
+  document.getElementById('pf-callsign').textContent  = data.callsign || '—';
+  document.getElementById('pf-aircraft').textContent  = matchedAC ? matchedAC.name : (data.aircraft_type || '—');
+  document.getElementById('pf-souls').textContent     = data.souls_on_board != null ? data.souls_on_board : '—';
+  document.getElementById('pf-fuel').textContent      = data.fuel_on_board || '—';
+  document.getElementById('pf-emergency').textContent = data.emergency_type || '—';
+  document.getElementById('pf-freq').textContent      = data.frequency || '—';
+
+  // Build location selector buttons
+  const locDiv = document.getElementById('loc-btns');
+  locDiv.innerHTML = '';
+  rwyKeys.forEach(key => {
+    const label = key.replace(/^_[^_]+_/, '').replace(/_/g,' ');
+    const b = document.createElement('button');
+    b.className = 'loc-btn' + (key === coordKey ? ' active' : '');
+    b.textContent = label;
+    b.onclick = () => { movePin(key); document.querySelectorAll('.loc-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    locDiv.appendChild(b);
+  });
+  if(!coord) {
+    const b = document.createElement('button');
+    b.className='loc-btn'; b.textContent='No coords — pick manually';
+    locDiv.appendChild(b);
+  }
+
+  // Update FAB
+  document.getElementById('incident-fab').classList.add('has-incident');
+
+  // Navigate to Rainbow Movement Area and show panel
+  openMap('Rainbow-Movement-Area','Rainbow Movement Area','Active Incident','arff');
+  document.getElementById('incident-panel').classList.add('open');
+  document.getElementById('incident-panel').classList.remove('collapsed');
+  panelCollapsed = false;
+
+  // Pin will appear via updateIncidentPin() called from applyT() after fitActive()
+}
+
+// ── Move pin to a different location ──
+function movePin(key) {
+  currentLocKey = key;
+  if(incident) incident.coord = RUNWAY_COORDS[key];
+  updateIncidentPin();
+}
+
+// ── Update pin position (called from applyT) ──
+function updateIncidentPin() {
+  const pin = document.getElementById('incident-pin');
+  if(!pin) return;
+  if(!incident || !incident.coord || curScreen !== 'map' || mapFile !== 'Rainbow-Movement-Area') {
+    pin.style.display = 'none';
+    return;
+  }
+  const img = document.getElementById('map-img');
+  if(!img.naturalWidth) { pin.style.display = 'none'; return; }
+  const px = ox + (incident.coord.x / 100) * img.naturalWidth  * scale;
+  const py = oy + (incident.coord.y / 100) * img.naturalHeight * scale;
+  pin.style.left    = px + 'px';
+  pin.style.top     = py + 'px';
+  pin.style.display = 'flex';
+  document.getElementById('pin-label-text').textContent = 'RWY ' + (incident.runway || '');
+}
+
+// ── Panel collapse ──
+function togglePanelCollapse() {
+  const panel = document.getElementById('incident-panel');
+  panelCollapsed = !panelCollapsed;
+  panel.classList.toggle('collapsed', panelCollapsed);
+  document.getElementById('panel-collapse-btn').textContent = panelCollapsed ? '⌃' : '⌄';
+}
+
+// ── Panel actions ──
+function openRescueCard() {
+  if(!incident) return;
+  const ac = incident.matchedAC;
+  if(ac) { openAc(ac); return; }
+  // No match — show picker
+  const names = AIRCRAFT.map((a,i)=>`${i+1}. ${a.name}`).join('\n');
+  const idx = parseInt(prompt('Aircraft not matched. Pick:\n' + names)) - 1;
+  if(idx >= 0 && idx < AIRCRAFT.length) openAc(AIRCRAFT[idx]);
+}
+function trackFlight() {
+  if(!incident || !incident.callsign) return;
+  window.open('https://flightaware.com/live/flight/' + encodeURIComponent(incident.callsign), '_blank');
+}
+function clearIncident() {
+  if(!confirm('Clear active incident?')) return;
+  incident = null; currentLocKey = null;
+  document.getElementById('incident-panel').classList.remove('open','collapsed');
+  document.getElementById('incident-fab').classList.remove('has-incident');
+  document.getElementById('incident-pin').style.display = 'none';
+  panelCollapsed = false;
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const GATE_MAP_FILE = 'Gate-Numbers-Airline-Assignments.jpg';
+let renderer, scene, camera, controls, animId, mapMesh, is3D = false;
+
+function enable() {
+  is3D = true;
+  const overlay = document.getElementById('map-3d');
+  const canvas  = document.getElementById('canvas-3d');
+  overlay.style.display = 'block';
+  document.getElementById('btn-3d').textContent = '2D';
+
+  // Hide 2D controls
+  document.getElementById('map-img').style.opacity = '0';
+  document.getElementById('zoom-ctrl').classList.remove('visible');
+  document.getElementById('map-ind').classList.remove('visible');
+
+  const w = overlay.clientWidth, h = overlay.clientHeight;
+
+  // Scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a0a);
+  scene.fog = new THREE.FogExp2(0x0a0a0a, 0.18);
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(42, w / h, 0.01, 100);
+  camera.position.set(0, 0, 2.6);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 1.4));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 0.8);
+  sun.position.set(4, 8, 5);
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xd0e8ff, 0.3);
+  fill.position.set(-4, 2, -3);
+  scene.add(fill);
+
+  // Load map texture
+  new THREE.TextureLoader().load(GATE_MAP_FILE, (tex) => {
+    tex.anisotropy  = renderer.capabilities.getMaxAnisotropy();
+    tex.colorSpace  = THREE.SRGBColorSpace;
+    const asp = tex.image.naturalWidth / tex.image.naturalHeight;
+    mapMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(asp * 2.4, 2.4),
+      new THREE.MeshLambertMaterial({ map: tex })
+    );
+    scene.add(mapMesh);
+
+    // Thin border frame
+    const frame = new THREE.Mesh(
+      new THREE.PlaneGeometry(asp * 2.4 + 0.04, 2.4 + 0.04),
+      new THREE.MeshBasicMaterial({ color: 0x30363d })
+    );
+    frame.position.z = -0.002;
+    scene.add(frame);
+  });
+
+  // OrbitControls — touch-native on iOS Safari
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping   = true;
+  controls.dampingFactor   = 0.07;
+  controls.minDistance     = 0.4;
+  controls.maxDistance     = 7;
+  controls.maxPolarAngle   = Math.PI / 1.85;
+  controls.touches         = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
+  controls.mouseButtons    = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
+
+  // Resize handler
+  window._3dResize = () => {
+    const w2 = overlay.clientWidth, h2 = overlay.clientHeight;
+    camera.aspect = w2 / h2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w2, h2, false);
+  };
+  window.addEventListener('resize', window._3dResize);
+
+  // Hide hint after 4.5 s
+  setTimeout(() => { const h = document.getElementById('hint-3d'); if(h) h.style.opacity='0'; }, 4500);
+
+  // Animate
+  (function loop() { animId = requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); })();
+}
+
+function disable() {
+  is3D = false;
+  if (animId)   { cancelAnimationFrame(animId); animId = null; }
+  if (controls) { controls.dispose(); controls = null; }
+  if (renderer) { renderer.dispose(); renderer = null; }
+  if (scene && mapMesh) { mapMesh.geometry.dispose(); mapMesh.material.dispose(); }
+  scene = camera = mapMesh = null;
+  window.removeEventListener('resize', window._3dResize);
+
+  document.getElementById('map-3d').style.display = 'none';
+  document.getElementById('hint-3d').style.opacity = '1';
+  document.getElementById('btn-3d').textContent = '3D';
+
+  // Restore 2D
+  document.getElementById('map-img').style.opacity = '1';
+  document.getElementById('zoom-ctrl').classList.add('visible');
+  document.getElementById('map-ind').classList.add('visible');
+}
+
+window.MapViewer3D = {
+  toggle()        { is3D ? disable() : enable(); },
+  topDown()       { if(!camera||!controls) return; camera.position.set(0,0,2.6); controls.target.set(0,0,0); controls.update(); },
+  reset()         { this.topDown(); },
+  showToggle(show){
+    document.getElementById('btn-3d').style.display = show ? 'flex' : 'none';
+    if(!show && is3D) disable();
+  }
+};
+</script>
+</body>
+</html>
