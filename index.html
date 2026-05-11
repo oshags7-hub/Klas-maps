@@ -79,8 +79,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .zbtn{width:54px;height:54px;border-radius:13px;background:rgba(22,27,34,.93);border:1px solid var(--border);color:var(--text);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
 .zbtn:active{opacity:.6;}
 #fit-btn{font-size:13px;font-weight:800;}
+#coord-btn{font-size:18px;}
+#coord-btn.active{border-color:#a371f7;color:#a371f7;background:rgba(163,113,247,0.15);}
 .ind-pill{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.93);border:1px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--muted);backdrop-filter:blur(8px);z-index:160;pointer-events:none;white-space:nowrap;display:none;}
 .ind-pill.visible{display:block;}
+
+/* ── MAP LABELS ── */
+.map-label{position:absolute;pointer-events:none;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:40;}
+.map-label-text{background:rgba(13,17,23,0.88);border:1.5px solid #a371f7;color:#e6edf3;font-size:12px;font-weight:800;padding:4px 10px;border-radius:8px;white-space:nowrap;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,0.5);letter-spacing:0.3px;}
+.map-label-stem{width:2px;height:10px;background:#a371f7;}
+.map-label-dot{width:8px;height:8px;border-radius:50%;background:#a371f7;border:2px solid #fff;margin-top:-2px;}
+#coord-toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a0d38;border:1.5px solid #a371f7;color:#a371f7;font-size:13px;font-weight:800;padding:8px 18px;border-radius:10px;z-index:400;display:none;pointer-events:none;font-family:monospace;letter-spacing:0.5px;}
 
 /* ── INCIDENT BUTTON ── */
 #incident-fab{position:fixed;bottom:28px;right:16px;z-index:250;background:#ff3b30;color:#fff;border:none;border-radius:16px;padding:0 20px;height:64px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 24px rgba(255,59,48,0.55);display:flex;align-items:center;gap:8px;letter-spacing:0.3px;-webkit-tap-highlight-color:transparent;}
@@ -119,6 +128,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .pin-label{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#ff3b30;color:#fff;font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
 .pin-label::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#ff3b30;}
 @keyframes pinPulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2.2);opacity:0;}}
+
+/* ── RUNWAY ARROW SVG OVERLAY ── */
+#runway-svg{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none;z-index:45;overflow:visible;}
 
 /* ── INCIDENT PANEL ── */
 #incident-panel{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:2px solid #ff3b30;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;display:flex;flex-direction:column;}
@@ -291,6 +303,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 <!-- MAP VIEWER -->
 <div id="map-screen" class="screen">
   <img id="map-img" src="" alt="" draggable="false">
+  <svg id="runway-svg"></svg>
   <div id="map-spinner" class="vspinner"><div class="sp"></div><p id="map-spin-txt">Loading…</p></div>
   <div id="incident-pin"><div class="pin-ring"></div><div class="pin-dot"></div><div class="pin-label" id="pin-label-text">RWY</div></div>
   <!-- 3D OVERLAY -->
@@ -370,11 +383,299 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
   <button class="zbtn" onclick="zoom(1.5)">+</button>
   <button class="zbtn" id="fit-btn" onclick="fitActive()">FIT</button>
   <button class="zbtn" onclick="zoom(1/1.5)">&#8722;</button>
+  <button class="zbtn" id="coord-btn" onclick="toggleCoordMode()" title="Tap map to get label coordinates">📍</button>
 </div>
+<div id="coord-toast"></div>
 <div id="map-ind" class="ind-pill"></div>
 <div id="ac-ind" class="ind-pill"></div>
 
 <script>
+// ── MAP LABELS ──
+// x/y are percentages of the image's natural width/height (0–100).
+// Use the 📍 coord helper to tap the map and get exact values.
+const MAP_LABELS = {
+  'Rainbow-Movement-Area': [
+    // { text: 'Customs Tunnel Entrance', x: 50, y: 50 },
+    // { text: 'Customs Entrance',        x: 50, y: 50 },
+  ],
+  'Gate-Numbers-Airline-Assignments': [
+    // { text: 'Customs Tunnel Entrance', x: 50, y: 50 },
+    // { text: 'Customs Entrance',        x: 50, y: 50 },
+  ],
+  'Terminal3-Level0': [
+    // { text: 'Customs Tunnel Entrance', x: 50, y: 50 },
+    // { text: 'Customs Entrance',        x: 50, y: 50 },
+  ],
+  'Terminal3-Level1': [
+    // { text: 'Customs Tunnel Entrance', x: 50, y: 50 },
+    // { text: 'Customs Entrance',        x: 50, y: 50 },
+  ],
+};
+
+let coordMode = false;
+let coordToastTimer = null;
+
+function toggleCoordMode() {
+  coordMode = !coordMode;
+  document.getElementById('coord-btn').classList.toggle('active', coordMode);
+  showCoordToast(coordMode ? 'TAP MAP → GET COORDS' : 'Coord mode off', coordMode ? 4000 : 1500);
+}
+
+function showCoordToast(msg, duration) {
+  const el = document.getElementById('coord-toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(coordToastTimer);
+  if(duration) coordToastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+function handleCoordTap(clientX, clientY) {
+  if(!coordMode || activeViewer !== 'map') return false;
+  const img = document.getElementById('map-img');
+  if(!img.naturalWidth) return false;
+  const x = ((clientX - ox) / (img.naturalWidth  * scale) * 100).toFixed(2);
+  const y = ((clientY - oy) / (img.naturalHeight * scale) * 100).toFixed(2);
+  const msg = `x: ${x}%  y: ${y}%`;
+  showCoordToast(msg, 5000);
+  prompt('Copy these coordinates:', `x: ${x}, y: ${y}`);
+  return true;
+}
+
+function updateMapLabels() {
+  // remove old labels
+  document.querySelectorAll('.map-label').forEach(el => el.remove());
+  if(activeViewer !== 'map') return;
+  const labels = MAP_LABELS[mapFile];
+  if(!labels || !labels.length) return;
+  const img = document.getElementById('map-img');
+  if(!img.naturalWidth) return;
+  const screen = document.getElementById('map-screen');
+  labels.forEach(lbl => {
+    const px = ox + (lbl.x / 100) * img.naturalWidth  * scale;
+    const py = oy + (lbl.y / 100) * img.naturalHeight * scale;
+    const el = document.createElement('div');
+    el.className = 'map-label';
+    el.style.left = px + 'px';
+    el.style.top  = py + 'px';
+    el.innerHTML = `<div class="map-label-text">${lbl.text}</div><div class="map-label-stem"></div><div class="map-label-dot"></div>`;
+    screen.appendChild(el);
+  });
+}
+
+// ── RUNWAY DIRECTIONAL ARROW ──
+const RUNWAY_HEADINGS = {
+  '1L':10,  '1R':10,
+  '8L':80,  '8R':80,
+  '19L':190,'19R':190,
+  '26L':260,'26R':260,
+};
+
+let _arrowRaf = null;
+
+function _svgEl(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if(attrs) for(const [k,v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  return el;
+}
+
+// Lightweight — called every pan/zoom from applyT().  Only syncs transform + repositions fallback pin.
+function syncArrowTransform() {
+  const svg = document.getElementById('runway-svg');
+  const img = document.getElementById('map-img');
+  if(svg && img && svg.getAttribute('data-live') === '1') svg.style.transform = img.style.transform;
+  // Reposition fallback pin if it's visible
+  const pin = document.getElementById('incident-pin');
+  if(pin && pin.style.display !== 'none' && incident && incident.coord && img && img.naturalWidth) {
+    pin.style.left = (ox + (incident.coord.x/100)*img.naturalWidth *scale)+'px';
+    pin.style.top  = (oy + (incident.coord.y/100)*img.naturalHeight*scale)+'px';
+  }
+}
+
+// Full rebuild — called when incident activates/moves/clears or Rainbow image finishes loading.
+function buildRunwayArrow() {
+  const svg = document.getElementById('runway-svg');
+  const pin = document.getElementById('incident-pin');
+  if(_arrowRaf){ cancelAnimationFrame(_arrowRaf); _arrowRaf=null; }
+  svg.innerHTML = '';
+  svg.removeAttribute('data-live');
+  pin.style.display = 'none';
+
+  if(!incident || curScreen !== 'map' || mapFile !== 'Rainbow-Movement-Area') return;
+  const img = document.getElementById('map-img');
+  if(!img.naturalWidth) return;
+
+  const imgW = img.naturalWidth, imgH = img.naturalHeight;
+  svg.setAttribute('width',  imgW);
+  svg.setAttribute('height', imgH);
+  svg.style.transform = img.style.transform;
+
+  const rwy     = (incident.runway||'').toUpperCase().replace(/\s/g,'');
+  const heading = RUNWAY_HEADINGS[rwy];
+
+  // ── FALLBACK: unrecognised runway → original pulsing pin + panel note ──
+  if(heading === undefined) {
+    if(incident.coord){
+      const px = ox+(incident.coord.x/100)*imgW*scale;
+      const py = oy+(incident.coord.y/100)*imgH*scale;
+      pin.style.left=px+'px'; pin.style.top=py+'px'; pin.style.display='flex';
+      document.getElementById('pin-label-text').textContent='RWY '+(incident.runway||'?');
+    }
+    const rwEl = document.getElementById('pf-runway');
+    if(rwEl) rwEl.title='Runway not recognised — showing approximate location';
+    return;
+  }
+
+  if(!incident.coord) return;
+
+  // Target ~180 px on screen at fit-to-screen scale
+  const vEl    = document.getElementById('map-screen');
+  const fScale = Math.min(vEl.clientWidth/imgW, vEl.clientHeight/imgH);
+  const L  = 90 / fScale;   // half arrow length  (image px)
+  const W  = 9  / fScale;   // half arrow width   (image px)
+  const cx = (incident.coord.x/100)*imgW;
+  const cy = (incident.coord.y/100)*imgH;
+
+  const acStr  = (incident.matchedAC ? incident.matchedAC.name : (incident.aircraft_type||''))||'';
+  const subLbl = [acStr, incident.callsign||''].filter(Boolean).join(' · ');
+
+  _drawArrow(svg, cx, cy, heading, L, W, rwy, subLbl, fScale);
+  svg.setAttribute('data-live', '1');
+  svg.setAttribute('data-L', L.toFixed(1));
+
+  // ── Animation loop (chasing pulses + arrowhead glow) ──
+  let t0 = null;
+  function arrowTick(ts){
+    if(!t0) t0=ts;
+    if(svg.getAttribute('data-live')!=='1') return;
+    const t=((ts-t0)/1000), dur=1.2, pRatio=0.3;
+    const Lv=parseFloat(svg.getAttribute('data-L'));
+    svg.querySelectorAll('[data-poff]').forEach(el=>{
+      const off=parseFloat(el.getAttribute('data-poff'));
+      const phase=((t+off)%dur)/dur;
+      el.setAttribute('x', (-Lv+phase*(2*Lv+Lv*pRatio)).toFixed(1));
+      el.setAttribute('opacity', Math.max(0,Math.sin(phase*Math.PI)*0.9).toFixed(3));
+    });
+    svg.querySelectorAll('[data-hL]').forEach(el=>{
+      const hL=parseFloat(el.getAttribute('data-hL'));
+      const s=1.0+0.15*(0.5+0.5*Math.sin(t*2*Math.PI/0.6));
+      el.setAttribute('transform',`translate(${hL.toFixed(1)},0) scale(${s.toFixed(3)}) translate(${(-hL).toFixed(1)},0)`);
+    });
+    _arrowRaf=requestAnimationFrame(arrowTick);
+  }
+  _arrowRaf=requestAnimationFrame(arrowTick);
+}
+
+function _drawArrow(svg, cx, cy, headingDeg, L, W, rwyLabel, subLabel, fScale){
+  const rot   = headingDeg - 90;        // SVG rotate: 0°=right, so subtract 90 from compass
+  const headW = W  * 2.5;              // arrowhead half-width
+  const headL = W  * 3.5;              // arrowhead length
+  const pLen  = L  * 0.3;             // pulse rect width
+  const uid   = 'rwy'+Math.abs(Math.round(cx))+'x'+Math.abs(Math.round(cy));
+
+  // ── defs ──
+  const defs = _svgEl('defs');
+
+  // Drop shadow
+  const fSh = _svgEl('filter',{id:uid+'_sh',x:'-40%',y:'-40%',width:'180%',height:'180%'});
+  fSh.appendChild(_svgEl('feDropShadow',{dx:0,dy:0,stdDeviation:(5/fScale).toFixed(1),'flood-color':'#000','flood-opacity':'0.8'}));
+  defs.appendChild(fSh);
+
+  // Arrowhead glow
+  const fGl = _svgEl('filter',{id:uid+'_gl',x:'-80%',y:'-80%',width:'260%',height:'260%'});
+  fGl.appendChild(_svgEl('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(7/fScale).toFixed(1),result:'blur'}));
+  const fGM = _svgEl('feMerge');
+  fGM.appendChild(_svgEl('feMergeNode',{in:'blur'}));
+  fGM.appendChild(_svgEl('feMergeNode',{in:'SourceGraphic'}));
+  fGl.appendChild(fGM);
+  defs.appendChild(fGl);
+
+  // Pulse gradient (tail→tip = left→right in local space)
+  const pg = _svgEl('linearGradient',{id:uid+'_pg',x1:'0%',y1:'0%',x2:'100%',y2:'0%',gradientUnits:'objectBoundingBox'});
+  [['0%','rgba(255,255,200,0)'],['20%','rgba(255,255,200,0.9)'],['65%','rgba(255,220,60,0.9)'],['100%','rgba(255,200,0,0)']]
+    .forEach(([offset,color])=>{ const s=_svgEl('stop',{offset}); s.setAttribute('stop-color',color); pg.appendChild(s); });
+  defs.appendChild(pg);
+
+  // Clip path — pulses stay inside the body rectangle, not over the arrowhead
+  const cp = _svgEl('clipPath',{id:uid+'_cp'});
+  cp.appendChild(_svgEl('rect',{x:(-L).toFixed(1),y:(-W).toFixed(1),width:(2*L-headL).toFixed(1),height:(2*W).toFixed(1)}));
+  defs.appendChild(cp);
+  svg.appendChild(defs);
+
+  // ── Arrow group: translate to runway point, rotate to heading ──
+  const g = _svgEl('g',{transform:`translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${rot})`});
+  g.setAttribute('filter',`url(#${uid}_sh)`);
+
+  // Body (dark navy rectangle)
+  g.appendChild(_svgEl('rect',{
+    x:(-L).toFixed(1), y:(-W).toFixed(1),
+    width:(2*L-headL).toFixed(1), height:(2*W).toFixed(1),
+    fill:'#1a2030', rx:(W*0.5).toFixed(1), ry:(W*0.5).toFixed(1)
+  }));
+
+  // Centerline dashes (runway centerline visual)
+  g.appendChild(_svgEl('line',{
+    x1:(-L*0.88).toFixed(1),y1:'0', x2:((L-headL)*0.93).toFixed(1),y2:'0',
+    stroke:'#3a4555','stroke-width':(W*0.22).toFixed(1),
+    'stroke-dasharray':`${(W*1.4).toFixed(1)} ${W.toFixed(1)}`
+  }));
+
+  // Two chasing pulses (0 s and 0.4 s phase offset)
+  [0, 0.4].forEach(off=>{
+    g.appendChild(_svgEl('rect',{
+      x:(-L).toFixed(1), y:(-W).toFixed(1),
+      width:pLen.toFixed(1), height:(2*W).toFixed(1),
+      fill:`url(#${uid}_pg)`, opacity:'0',
+      'clip-path':`url(#${uid}_cp)`, 'data-poff':off
+    }));
+  });
+
+  // Arrowhead — glows red, animates scale around tip point
+  const hg = _svgEl('g',{'data-hL':L.toFixed(1)});
+  hg.appendChild(_svgEl('polygon',{
+    points:`${(L-headL).toFixed(1)},${(-headW).toFixed(1)} ${L.toFixed(1)},0 ${(L-headL).toFixed(1)},${headW.toFixed(1)}`,
+    fill:'#ff3333', filter:`url(#${uid}_gl)`
+  }));
+  g.appendChild(hg);
+  svg.appendChild(g);
+
+  // ── Label (image-space, not rotated) ──
+  const lfs  = Math.max(11, Math.round(13/fScale));
+  const sfs  = Math.max( 9, Math.round(10/fScale));
+  const lpad = Math.max( 4, Math.round( 6/fScale));
+  const lbgW = Math.max(60, rwyLabel.length*lfs*0.72 + lpad*2);
+  const lbgH = lfs + (subLabel ? sfs+lpad*0.5 : 0) + lpad*2;
+  const labY = cy - W - lpad*3 - lbgH;
+
+  const lg = _svgEl('g',{transform:`translate(${cx.toFixed(1)},${labY.toFixed(1)})`});
+  lg.appendChild(_svgEl('rect',{
+    x:(-(lbgW/2)).toFixed(1), y:'0',
+    width:lbgW.toFixed(1), height:lbgH.toFixed(1),
+    rx:(lpad*0.6).toFixed(1), ry:(lpad*0.6).toFixed(1),
+    fill:'rgba(13,17,23,0.92)', stroke:'#ff3333',
+    'stroke-width':Math.max(1,1.5/fScale).toFixed(1)
+  }));
+
+  const rt = _svgEl('text',{
+    x:'0', y:(lpad+lfs).toFixed(1),
+    'text-anchor':'middle', fill:'#ffffff',
+    'font-size':lfs, 'font-weight':'900',
+    'font-family':'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
+  });
+  rt.textContent = rwyLabel;
+  lg.appendChild(rt);
+
+  if(subLabel){
+    const st = _svgEl('text',{
+      x:'0', y:(lpad*1.5+lfs+sfs).toFixed(1),
+      'text-anchor':'middle', fill:'#8b949e', 'font-size':sfs,
+      'font-family':'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
+    });
+    st.textContent = subLabel;
+    lg.appendChild(st);
+  }
+  svg.appendChild(lg);
+}
+
 // ── AIRCRAFT REGISTRY ──
 // ADD NEW AIRCRAFT HERE when new PDFs are processed
 const AIRCRAFT = [
@@ -455,7 +756,7 @@ function loadMapImg(file, label) {
   img.classList.remove('visible');
   sp.classList.remove('hidden');
   document.getElementById('map-spin-txt').textContent=label||file;
-  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateMapInd();};
+  img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateMapInd();if(mapFile==='Rainbow-Movement-Area')buildRunwayArrow();};
   img.onerror=()=>{document.getElementById('map-spin-txt').textContent='Error loading map';};
   img.src=file+'.jpg';
 }
@@ -535,7 +836,8 @@ function applyT() {
   const img=getImgEl();
   if(img) img.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;
   updateMapInd(); updateAcInd();
-  updateIncidentPin();
+  syncArrowTransform();
+  updateMapLabels();
 }
 
 function updateMapInd(){if(activeViewer==='map'){const el=document.getElementById('map-ind');el.textContent=Math.round(scale*100)+'%';}}
@@ -589,6 +891,17 @@ window.addEventListener('mousemove',e=>{if(!dragging)return;ox+=e.clientX-lx;oy+
 window.addEventListener('mouseup',()=>dragging=false);
 addViewerEvents('map-screen');
 addViewerEvents('ac-screen');
+
+// coord-mode tap on map
+document.getElementById('map-screen').addEventListener('click', e => {
+  if(handleCoordTap(e.clientX, e.clientY)) e.stopPropagation();
+});
+document.getElementById('map-screen').addEventListener('touchend', e => {
+  if(coordMode && e.changedTouches.length === 1) {
+    const t = e.changedTouches[0];
+    if(handleCoordTap(t.clientX, t.clientY)) e.stopPropagation();
+  }
+});
 window.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'||e.key==='ArrowDown')nav(1);
   if(e.key==='ArrowLeft'||e.key==='ArrowUp')nav(-1);
@@ -1065,7 +1378,7 @@ function activateIncident(data, rawTranscript, preMatchedAC) {
 function movePin(key) {
   currentLocKey = key;
   if(incident) incident.coord = RUNWAY_COORDS[key];
-  updateIncidentPin();
+  buildRunwayArrow();
 }
 
 // ── Update pin position (called from applyT) ──
@@ -1130,6 +1443,9 @@ function clearIncident() {
   document.getElementById('incident-fab').classList.remove('has-incident');
   document.getElementById('incident-fab').style.display = 'flex';
   document.getElementById('incident-pin').style.display = 'none';
+  const svg = document.getElementById('runway-svg');
+  if(svg){ svg.innerHTML=''; svg.removeAttribute('data-live'); }
+  if(_arrowRaf){ cancelAnimationFrame(_arrowRaf); _arrowRaf=null; }
   panelCollapsed = false;
 }
 </script>
