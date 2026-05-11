@@ -463,12 +463,44 @@ function updateMapLabels() {
 }
 
 // ── RUNWAY DIRECTIONAL ARROW ──
+// Used only to validate whether a parsed runway string is a known KLAS runway.
 const RUNWAY_HEADINGS = {
   '1L':10,  '1R':10,
   '8L':80,  '8R':80,
   '19L':190,'19R':190,
   '26L':260,'26R':260,
 };
+
+// Maps each runway designator to its approach-threshold and departure-end
+// keys inside RUNWAY_COORDS.  The visual angle is computed from these pixel-
+// accurate coordinates so the arrow lies exactly on the runway regardless of
+// how north-up the map happens to be.
+const RUNWAY_ENDPOINTS = {
+  '26R': { a:'_26R_Approach',  d:'_26R_Departure'  },
+  '8L':  { a:'_8L_Approach',   d:'_8L_Departure'   },
+  '26L': { a:'_26L_Approach',  d:'_26L_Departure'  },
+  '8R':  { a:'_8R_Approach',   d:'_8R_Departure'   },
+  '1R':  { a:'_1R_Approach',   d:'_1R_Departure'   },
+  '19L': { a:'_19L_Approach',  d:'_19L_Departure'  },
+  '19R': { a:'_19R_Approach',  d:'_19R_Departure'  },
+};
+
+// Returns the SVG rotation angle (0 = right, clockwise positive) for a
+// runway by measuring the actual pixel direction on the image.
+function _runwayAngle(rwy, imgW, imgH) {
+  const ep = RUNWAY_ENDPOINTS[rwy];
+  if(ep) {
+    const a = RUNWAY_COORDS[ep.a], d = RUNWAY_COORDS[ep.d];
+    if(a && d) {
+      const dx = (d.x - a.x) / 100 * imgW;
+      const dy = (d.y - a.y) / 100 * imgH;
+      return Math.atan2(dy, dx) * 180 / Math.PI;
+    }
+  }
+  // Fallback: derive from compass heading (assumes north-up map)
+  const h = RUNWAY_HEADINGS[rwy];
+  return h !== undefined ? h - 90 : null;
+}
 
 let _arrowRaf = null;
 
@@ -509,11 +541,10 @@ function buildRunwayArrow() {
   svg.setAttribute('height', imgH);
   svg.style.transform = img.style.transform;
 
-  const rwy     = (incident.runway||'').toUpperCase().replace(/\s/g,'');
-  const heading = RUNWAY_HEADINGS[rwy];
+  const rwy = (incident.runway||'').toUpperCase().replace(/\s/g,'');
 
   // ── FALLBACK: unrecognised runway → original pulsing pin + panel note ──
-  if(heading === undefined) {
+  if(RUNWAY_HEADINGS[rwy] === undefined) {
     if(incident.coord){
       const px = ox+(incident.coord.x/100)*imgW*scale;
       const py = oy+(incident.coord.y/100)*imgH*scale;
@@ -527,18 +558,22 @@ function buildRunwayArrow() {
 
   if(!incident.coord) return;
 
-  // Target ~180 px on screen at fit-to-screen scale
+  // Target ~180 px long × ~12 px wide on screen at fit-to-screen scale
   const vEl    = document.getElementById('map-screen');
   const fScale = Math.min(vEl.clientWidth/imgW, vEl.clientHeight/imgH);
   const L  = 90 / fScale;   // half arrow length  (image px)
-  const W  = 9  / fScale;   // half arrow width   (image px)
+  const W  =  6 / fScale;   // half arrow width   (image px) — narrowed to stay on runway
   const cx = (incident.coord.x/100)*imgW;
   const cy = (incident.coord.y/100)*imgH;
+
+  // Derive the true visual angle from the runway endpoint coordinates
+  const svgAngle = _runwayAngle(rwy, imgW, imgH);
+  if(svgAngle === null) return;
 
   const acStr  = (incident.matchedAC ? incident.matchedAC.name : (incident.aircraft_type||''))||'';
   const subLbl = [acStr, incident.callsign||''].filter(Boolean).join(' · ');
 
-  _drawArrow(svg, cx, cy, heading, L, W, rwy, subLbl, fScale);
+  _drawArrow(svg, cx, cy, svgAngle, L, W, rwy, subLbl, fScale);
   svg.setAttribute('data-live', '1');
   svg.setAttribute('data-L', L.toFixed(1));
 
@@ -565,8 +600,8 @@ function buildRunwayArrow() {
   _arrowRaf=requestAnimationFrame(arrowTick);
 }
 
-function _drawArrow(svg, cx, cy, headingDeg, L, W, rwyLabel, subLabel, fScale){
-  const rot   = headingDeg - 90;        // SVG rotate: 0°=right, so subtract 90 from compass
+function _drawArrow(svg, cx, cy, svgAngle, L, W, rwyLabel, subLabel, fScale){
+  const rot   = svgAngle;               // already in SVG space (0°=right, clockwise +ve)
   const headW = W  * 2.5;              // arrowhead half-width
   const headL = W  * 3.5;              // arrowhead length
   const pLen  = L  * 0.3;             // pulse rect width
