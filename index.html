@@ -132,6 +132,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 /* ── RUNWAY ARROW SVG OVERLAY ── */
 #runway-svg{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none;z-index:45;overflow:visible;}
 
+/* ── RUNWAY ARROW LABEL (screen-space, fixed size) ── */
+#rwy-label{position:absolute;display:none;z-index:47;pointer-events:none;transform:translateX(-50%);text-align:center;}
+#rwy-label-main{background:rgba(13,17,23,0.92);border:2px solid #ff3333;color:#fff;font-size:13px;font-weight:900;padding:4px 12px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,0.6);letter-spacing:0.3px;}
+#rwy-label-sub{font-size:10px;color:#8b949e;margin-top:2px;white-space:nowrap;}
+
 /* ── INCIDENT PANEL ── */
 #incident-panel{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:2px solid #ff3b30;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:55vh;display:flex;flex-direction:column;}
 #incident-panel.open{transform:translateY(0);}
@@ -304,6 +309,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 <div id="map-screen" class="screen">
   <img id="map-img" src="" alt="" draggable="false">
   <svg id="runway-svg"></svg>
+  <div id="rwy-label"><div id="rwy-label-main"></div><div id="rwy-label-sub"></div></div>
   <div id="map-spinner" class="vspinner"><div class="sp"></div><p id="map-spin-txt">Loading…</p></div>
   <div id="incident-pin"><div class="pin-ring"></div><div class="pin-dot"></div><div class="pin-label" id="pin-label-text">RWY</div></div>
   <!-- 3D OVERLAY -->
@@ -521,6 +527,16 @@ function syncArrowTransform() {
     pin.style.left = (ox + (incident.coord.x/100)*img.naturalWidth *scale)+'px';
     pin.style.top  = (oy + (incident.coord.y/100)*img.naturalHeight*scale)+'px';
   }
+  // Reposition screen-space label
+  const lbl = document.getElementById('rwy-label');
+  if(lbl && lbl.style.display !== 'none' && img && img.naturalWidth) {
+    const lcx = parseFloat(lbl.getAttribute('data-cx') || '50');
+    const lcy = parseFloat(lbl.getAttribute('data-cy') || '50');
+    const sx = ox + (lcx/100)*img.naturalWidth  * scale;
+    const sy = oy + (lcy/100)*img.naturalHeight * scale;
+    lbl.style.left = sx + 'px';
+    lbl.style.top  = (sy - 30) + 'px';
+  }
 }
 
 // Full rebuild — called when incident activates/moves/clears or Rainbow image finishes loading.
@@ -531,6 +547,8 @@ function buildRunwayArrow() {
   svg.innerHTML = '';
   svg.removeAttribute('data-live');
   pin.style.display = 'none';
+  const lblEl = document.getElementById('rwy-label');
+  if(lblEl) lblEl.style.display = 'none';
 
   if(!incident || curScreen !== 'map' || mapFile !== 'Rainbow-Movement-Area') return;
   const img = document.getElementById('map-img');
@@ -576,6 +594,19 @@ function buildRunwayArrow() {
   _drawArrow(svg, cx, cy, svgAngle, L, W, rwy, subLbl, fScale);
   svg.setAttribute('data-live', '1');
   svg.setAttribute('data-L', L.toFixed(1));
+
+  // ── Screen-space label ──
+  const lbl = document.getElementById('rwy-label');
+  if(lbl){
+    document.getElementById('rwy-label-main').textContent = rwy;
+    const subEl = document.getElementById('rwy-label-sub');
+    subEl.textContent = subLbl;
+    subEl.style.display = subLbl ? 'block' : 'none';
+    lbl.style.display = 'block';
+    // Store arrow center in image-% for syncArrowTransform
+    lbl.setAttribute('data-cx', incident.coord.x);
+    lbl.setAttribute('data-cy', incident.coord.y);
+  }
 
   // ── Animation loop (chasing pulses + arrowhead glow) ──
   let t0 = null;
@@ -673,42 +704,6 @@ function _drawArrow(svg, cx, cy, svgAngle, L, W, rwyLabel, subLabel, fScale){
   g.appendChild(hg);
   svg.appendChild(g);
 
-  // ── Label (image-space, not rotated) ──
-  const lfs  = Math.max(11, Math.round(13/fScale));
-  const sfs  = Math.max( 9, Math.round(10/fScale));
-  const lpad = Math.max( 4, Math.round( 6/fScale));
-  const lbgW = Math.max(60, rwyLabel.length*lfs*0.72 + lpad*2);
-  const lbgH = lfs + (subLabel ? sfs+lpad*0.5 : 0) + lpad*2;
-  const labY = cy - W - lpad*3 - lbgH;
-
-  const lg = _svgEl('g',{transform:`translate(${cx.toFixed(1)},${labY.toFixed(1)})`});
-  lg.appendChild(_svgEl('rect',{
-    x:(-(lbgW/2)).toFixed(1), y:'0',
-    width:lbgW.toFixed(1), height:lbgH.toFixed(1),
-    rx:(lpad*0.6).toFixed(1), ry:(lpad*0.6).toFixed(1),
-    fill:'rgba(13,17,23,0.92)', stroke:'#ff3333',
-    'stroke-width':Math.max(1,1.5/fScale).toFixed(1)
-  }));
-
-  const rt = _svgEl('text',{
-    x:'0', y:(lpad+lfs).toFixed(1),
-    'text-anchor':'middle', fill:'#ffffff',
-    'font-size':lfs, 'font-weight':'900',
-    'font-family':'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
-  });
-  rt.textContent = rwyLabel;
-  lg.appendChild(rt);
-
-  if(subLabel){
-    const st = _svgEl('text',{
-      x:'0', y:(lpad*1.5+lfs+sfs).toFixed(1),
-      'text-anchor':'middle', fill:'#8b949e', 'font-size':sfs,
-      'font-family':'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
-    });
-    st.textContent = subLabel;
-    lg.appendChild(st);
-  }
-  svg.appendChild(lg);
 }
 
 // ── AIRCRAFT REGISTRY ──
@@ -1481,6 +1476,8 @@ function clearIncident() {
   const svg = document.getElementById('runway-svg');
   if(svg){ svg.innerHTML=''; svg.removeAttribute('data-live'); }
   if(_arrowRaf){ cancelAnimationFrame(_arrowRaf); _arrowRaf=null; }
+  const lbl = document.getElementById('rwy-label');
+  if(lbl) lbl.style.display = 'none';
   panelCollapsed = false;
 }
 </script>
