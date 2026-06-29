@@ -436,18 +436,11 @@ const MAP_LABELS = {
     // { text: 'Customs Entrance',        x: 50, y: 50 },
   ],
   // Tram tunnel system — emergency response reference.
-  // type: 'access' (green) = Emergency Access Point
-  //       'fdc'    (red)   = Fire Department Connection
-  //       'distance' (yellow) = Underground distance marker
-  'Tram-System': [
-    { text: 'Access blue line & green line from stairs at zero level', x: 26.56, y: 52.08, type: 'access', dx: -70, dy: -75  },
-    { text: 'FDC north of Gate 44',                                    x: 31.25, y: 71.11, type: 'fdc',    dx:  60, dy: -90  },
-    { text: 'Stairs to green line at ramp level',                      x: 33.75, y: 78.47, type: 'access', dx: -10, dy:  85  },
-    { text: 'Pedestrian tunnel between trams',                         x: 72.73, y: 51.81, type: 'access', dx: -90, dy: -55  },
-    { text: "FDC, power shutoff & emergency phone every 200'",         x: 55.63, y: 74.44, type: 'fdc',    dx:   0, dy: -110 },
-    { text: 'Access Red line door at base of tower',                   x: 73.05, y: 71.11, type: 'access', dx:  90, dy: -70  },
-    { text: 'Access Blue line door between D33 & D59',                 x: 69.77, y: 76.25, type: 'access', dx: 175, dy:  20  },
-  ],
+  // The 7 emergency annotations (access points / FDC locations / pedestrian
+  // tunnel) are baked directly into Tram-System.jpg by design, so no
+  // MAP_LABELS overlay is needed here — adding one would just duplicate
+  // the callout boxes already drawn on the image.
+  'Tram-System': [],
 };
 
 let coordMode = false;
@@ -833,7 +826,7 @@ function loadMapImg(file, label) {
 }
 
 // Maps that use a non-jpg source file (e.g. a hand-built SVG diagram).
-const MAP_FILE_EXT = { 'Tram-System': 'svg' };
+const MAP_FILE_EXT = {};
 
 // ── AIRCRAFT LIST ──
 function showAcList() {
