@@ -85,10 +85,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .ind-pill.visible{display:block;}
 
 /* ── MAP LABELS ── */
-.map-label{position:absolute;pointer-events:none;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:40;}
-.map-label-text{background:rgba(13,17,23,0.88);border:1.5px solid #a371f7;color:#e6edf3;font-size:12px;font-weight:800;padding:4px 10px;border-radius:8px;white-space:nowrap;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,0.5);letter-spacing:0.3px;}
-.map-label-stem{width:2px;height:10px;background:#a371f7;}
-.map-label-dot{width:8px;height:8px;border-radius:50%;background:#a371f7;border:2px solid #fff;margin-top:-2px;}
+/* Simple style (no dx/dy): box stacked directly above the anchor dot. */
+.map-label{position:absolute;pointer-events:none;z-index:40;}
+.map-label.simple{transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px;}
+.map-label-text{position:absolute;transform:translate(-50%,-100%);background:rgba(13,17,23,0.92);border:1.5px solid #a371f7;color:#e6edf3;font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;white-space:normal;max-width:180px;line-height:1.25;text-align:center;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,0.5);letter-spacing:0.2px;}
+.map-label.simple .map-label-text{position:static;transform:none;white-space:nowrap;max-width:none;}
+.map-label-stem{position:absolute;left:0;top:0;height:2px;background:#a371f7;transform-origin:0 50%;}
+.map-label.simple .map-label-stem{position:static;width:2px;height:10px;transform:none;}
+.map-label-dot{position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#a371f7;border:2px solid #fff;}
+.map-label.simple .map-label-dot{position:static;transform:none;margin-top:-2px;}
 /* Tram-system marker types — same pill shape, color-coded border for fast triage */
 .map-label.access .map-label-text{border-color:#3fb950;}
 .map-label.access .map-label-stem,.map-label.access .map-label-dot{background:#3fb950;}
@@ -435,9 +440,13 @@ const MAP_LABELS = {
   //       'fdc'    (red)   = Fire Department Connection
   //       'distance' (yellow) = Underground distance marker
   'Tram-System': [
-    // { text: 'Emergency Access 3',   x: 50, y: 50, type: 'access' },
-    // { text: 'FDC - Station C',      x: 50, y: 50, type: 'fdc' },
-    // { text: '250 ft from Sta. B',   x: 50, y: 50, type: 'distance' },
+    { text: 'Access blue line & green line from stairs at zero level', x: 26.56, y: 52.08, type: 'access', dx: -70, dy: -75  },
+    { text: 'FDC north of Gate 44',                                    x: 31.25, y: 71.11, type: 'fdc',    dx:  60, dy: -90  },
+    { text: 'Stairs to green line at ramp level',                      x: 33.75, y: 78.47, type: 'access', dx: -10, dy:  85  },
+    { text: 'Pedestrian tunnel between trams',                         x: 72.73, y: 51.81, type: 'access', dx: -90, dy: -55  },
+    { text: "FDC, power shutoff & emergency phone every 200'",         x: 55.63, y: 74.44, type: 'fdc',    dx:   0, dy: -110 },
+    { text: 'Access Red line door at base of tower',                   x: 73.05, y: 71.11, type: 'access', dx:  90, dy: -70  },
+    { text: 'Access Blue line door between D33 & D59',                 x: 69.77, y: 76.25, type: 'access', dx: 175, dy:  20  },
   ],
 };
 
@@ -483,10 +492,17 @@ function updateMapLabels() {
     const px = ox + (lbl.x / 100) * img.naturalWidth  * scale;
     const py = oy + (lbl.y / 100) * img.naturalHeight * scale;
     const el = document.createElement('div');
-    el.className = 'map-label' + (lbl.type ? ' ' + lbl.type : '');
+    const hasOffset = lbl.dx !== undefined || lbl.dy !== undefined;
+    el.className = 'map-label' + (hasOffset ? '' : ' simple') + (lbl.type ? ' ' + lbl.type : '');
     el.style.left = px + 'px';
     el.style.top  = py + 'px';
-    el.innerHTML = `<div class="map-label-text">${lbl.text}</div><div class="map-label-stem"></div><div class="map-label-dot"></div>`;
+    if(hasOffset) {
+      const dx = lbl.dx || 0, dy = lbl.dy || -40;
+      const dist = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      el.innerHTML = `<div class="map-label-dot"></div><div class="map-label-stem" style="width:${dist}px;transform:rotate(${ang}deg);"></div><div class="map-label-text" style="left:${dx}px;top:${dy}px;">${lbl.text}</div>`;
+    } else {
+      el.innerHTML = `<div class="map-label-text">${lbl.text}</div><div class="map-label-stem"></div><div class="map-label-dot"></div>`;
+    }
     screen.appendChild(el);
   });
 }
@@ -812,8 +828,12 @@ function loadMapImg(file, label) {
   document.getElementById('map-spin-txt').textContent=label||file;
   img.onload=()=>{sp.classList.add('hidden');img.classList.add('visible');fitActive();updateMapInd();if(mapFile==='Rainbow-Movement-Area')buildRunwayArrow();};
   img.onerror=()=>{document.getElementById('map-spin-txt').textContent='Error loading map';};
-  img.src=file+'.jpg';
+  const ext = (MAP_FILE_EXT[file] || 'jpg');
+  img.src=file+'.'+ext;
 }
+
+// Maps that use a non-jpg source file (e.g. a hand-built SVG diagram).
+const MAP_FILE_EXT = { 'Tram-System': 'svg' };
 
 // ── AIRCRAFT LIST ──
 function showAcList() {
